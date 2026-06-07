@@ -38,7 +38,8 @@ export const translations = {
     descriptionOptional: "Mô tả (tùy chọn)",
     publicDisplayName: "Thông tin này hiển thị công khai.",
     close: "Đóng",
-    save: "Lưu"
+    save: "Lưu",
+    achievements: "Thành tựu"
   },
   en: {
     home: "Home",
@@ -79,7 +80,8 @@ export const translations = {
     descriptionOptional: "Description (optional)",
     publicDisplayName: "This is your public display name.",
     close: "Close",
-    save: "Save"
+    save: "Save",
+    achievements: "Achievements"
   },
   zh: {
     home: "首页",
@@ -120,6 +122,7 @@ export const translations = {
     descriptionOptional: "描述（选填）",
     publicDisplayName: "这是您的公开显示名称。",
     close: "关闭",
-    save: "保存"
+    save: "保存",
+    achievements: "成就"
   }
 };

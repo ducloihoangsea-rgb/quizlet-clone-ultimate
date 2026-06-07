@@ -55,6 +55,9 @@ const UserDropdown = ({ user }: { user: Session["user"] }) => {
         <Link href={`/users/${id}`}>
           <DropdownMenuItem>{t("profile")}</DropdownMenuItem>
         </Link>
+        <Link href="/achievements">
+          <DropdownMenuItem>{t("achievements")}</DropdownMenuItem>
+        </Link>
         <Link href="/settings">
           <DropdownMenuItem>{t("settings")}</DropdownMenuItem>
         </Link>
