@@ -8,3 +8,6 @@ export * from "./starredFlashcard";
 export * from "./studySet";
 export * from "./user";
 export * from "./verificationToken";
+export * from "./class";
+export * from "./classToStudySet";
+export * from "./classToFolder";

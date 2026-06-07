@@ -11,7 +11,7 @@ import {
   Plus, 
   Folder, 
   Activity,
-  BookOpen
+  Users
 } from "lucide-react";
 
 import type { Session } from "@acme/auth";
@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@acme/ui/sheet";
 import { Separator } from "@acme/ui/separator";
 
 import { useFolderDialogContext } from "~/contexts/folder-dialog-context";
+import { useClassDialogContext } from "~/contexts/class-dialog-context";
 import { useTranslation } from "~/contexts/i18n-context";
 import { api } from "~/trpc/react";
 import { cn } from "@acme/ui";
@@ -27,18 +28,29 @@ import { cn } from "@acme/ui";
 const MobileMenu = ({ session }: { session: Session | null }) => {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const [, dispatch] = useFolderDialogContext();
+  const [, dispatchFolder] = useFolderDialogContext();
+  const [, dispatchClass] = useClassDialogContext();
   const [open, setOpen] = React.useState(false);
 
-  // Load user folders if logged in
+  // Load user folders & classes if logged in
   const { data: folders } = api.folder.allByUser.useQuery(
+    { userId: session?.user.id ?? "" },
+    { enabled: !!session?.user.id }
+  );
+
+  const { data: classes } = api.class.allByUser.useQuery(
     { userId: session?.user.id ?? "" },
     { enabled: !!session?.user.id }
   );
 
   const openFolderDialog = () => {
     setOpen(false);
-    dispatch({ type: "open" });
+    dispatchFolder({ type: "open" });
+  };
+
+  const openClassDialog = () => {
+    setOpen(false);
+    dispatchClass({ type: "open" });
   };
 
   const navItems = [
@@ -110,6 +122,46 @@ const MobileMenu = ({ session }: { session: Session | null }) => {
             <>
               <Separator />
 
+              {/* User Classes Section */}
+              <div className="space-y-1">
+                <div className="px-3 py-2 text-xs font-bold text-muted-foreground tracking-wider uppercase">
+                  Lớp học của bạn
+                </div>
+                
+                <div className="space-y-0.5">
+                  {classes && classes.map((cls) => {
+                    const classUrl = `/classes/${cls.id}`;
+                    const isActive = pathname === classUrl;
+
+                    return (
+                      <Link key={cls.id} href={classUrl} onClick={() => setOpen(false)}>
+                        <span
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full",
+                            isActive
+                              ? "bg-secondary text-secondary-foreground font-bold"
+                              : "hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                          )}
+                        >
+                          <Users size={18} className="shrink-0 text-muted-foreground" />
+                          <span className="truncate">{cls.name}</span>
+                        </span>
+                      </Link>
+                    );
+                  })}
+
+                  <button
+                    onClick={openClassDialog}
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-semibold hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors"
+                  >
+                    <Plus size={18} className="shrink-0" />
+                    <span className="truncate">+ Lớp mới</span>
+                  </button>
+                </div>
+              </div>
+
+              <Separator />
+
               {/* User Folders Section */}
               <div className="space-y-1">
                 <div className="px-3 py-2 text-xs font-bold text-muted-foreground tracking-wider uppercase">
@@ -140,18 +192,10 @@ const MobileMenu = ({ session }: { session: Session | null }) => {
 
                   <button
                     onClick={openFolderDialog}
-                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors"
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-semibold hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors"
                   >
                     <Plus size={18} className="shrink-0" />
                     <span className="truncate">Tạo thư mục mới</span>
-                  </button>
-
-                  <button
-                    onClick={openFolderDialog}
-                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors"
-                  >
-                    <BookOpen size={18} className="shrink-0" />
-                    <span className="truncate">+ Lớp mới</span>
                   </button>
                 </div>
               </div>

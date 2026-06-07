@@ -11,9 +11,7 @@ import {
   Folder, 
   Activity, 
   Menu, 
-  ChevronLeft, 
-  ChevronRight,
-  BookOpen
+  Users
 } from "lucide-react";
 
 import type { Session } from "@acme/auth";
@@ -24,6 +22,7 @@ import { cn } from "@acme/ui";
 import { api } from "~/trpc/react";
 import { useTranslation } from "~/contexts/i18n-context";
 import { useFolderDialogContext } from "~/contexts/folder-dialog-context";
+import { useClassDialogContext } from "~/contexts/class-dialog-context";
 
 interface SidebarProps {
   session: Session | null;
@@ -34,10 +33,16 @@ interface SidebarProps {
 const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const [, dispatch] = useFolderDialogContext();
+  const [, dispatchFolder] = useFolderDialogContext();
+  const [, dispatchClass] = useClassDialogContext();
 
-  // Load user folders if logged in
+  // Load user folders & classes if logged in
   const { data: folders } = api.folder.allByUser.useQuery(
+    { userId: session?.user.id ?? "" },
+    { enabled: !!session?.user.id }
+  );
+
+  const { data: classes } = api.class.allByUser.useQuery(
     { userId: session?.user.id ?? "" },
     { enabled: !!session?.user.id }
   );
@@ -63,7 +68,13 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
 
   const handleCreateFolder = () => {
     if (session) {
-      dispatch({ type: "open" });
+      dispatchFolder({ type: "open" });
+    }
+  };
+
+  const handleCreateClass = () => {
+    if (session) {
+      dispatchClass({ type: "open" });
     }
   };
 
@@ -128,9 +139,61 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
 
         {session && (
           <>
+            {/* User Classes Section */}
             <Separator className="my-2" />
-            
+            <div className="space-y-1">
+              {!isCollapsed && (
+                <div className="px-3 py-2 text-xs font-bold text-muted-foreground tracking-wider uppercase">
+                  Lớp học của bạn
+                </div>
+              )}
+              
+              <div className="space-y-0.5">
+                {classes && classes.map((cls) => {
+                  const classUrl = `/classes/${cls.id}`;
+                  const isActive = pathname === classUrl;
+
+                  return (
+                    <Link key={cls.id} href={classUrl}>
+                      <span
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group relative",
+                          isActive
+                            ? "bg-secondary text-secondary-foreground font-bold"
+                            : "hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                        )}
+                      >
+                        <Users size={18} className="shrink-0 text-muted-foreground" />
+                        {!isCollapsed && <span className="truncate">{cls.name}</span>}
+                        
+                        {isCollapsed && (
+                          <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-popover text-popover-foreground text-xs font-semibold invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 whitespace-nowrap shadow-md">
+                            {cls.name}
+                          </div>
+                        )}
+                      </span>
+                    </Link>
+                  );
+                })}
+
+                <button
+                  onClick={handleCreateClass}
+                  className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-semibold hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors group relative"
+                >
+                  <Plus size={18} className="shrink-0" />
+                  {!isCollapsed && <span className="truncate">+ Lớp mới</span>}
+                  
+                  {isCollapsed && (
+                    <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-popover text-popover-foreground text-xs font-semibold invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 whitespace-nowrap shadow-md">
+                      Tạo lớp học mới
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* User Folders Section */}
+            <Separator className="my-2" />
             <div className="space-y-1">
               {!isCollapsed && (
                 <div className="px-3 py-2 text-xs font-bold text-muted-foreground tracking-wider uppercase">
@@ -168,9 +231,7 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
 
                 <button
                   onClick={handleCreateFolder}
-                  className={cn(
-                    "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors group relative"
-                  )}
+                  className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-semibold hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors group relative"
                 >
                   <Plus size={18} className="shrink-0" />
                   {!isCollapsed && <span className="truncate">Tạo thư mục mới</span>}
@@ -178,22 +239,6 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
                   {isCollapsed && (
                     <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-popover text-popover-foreground text-xs font-semibold invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 whitespace-nowrap shadow-md">
                       Tạo thư mục mới
-                    </div>
-                  )}
-                </button>
-
-                <button
-                  onClick={handleCreateFolder}
-                  className={cn(
-                    "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors group relative"
-                  )}
-                >
-                  <BookOpen size={18} className="shrink-0" />
-                  {!isCollapsed && <span className="truncate">+ Lớp mới</span>}
-                  
-                  {isCollapsed && (
-                    <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-popover text-popover-foreground text-xs font-semibold invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 whitespace-nowrap shadow-md">
-                      + Lớp mới (Mockup)
                     </div>
                   )}
                 </button>

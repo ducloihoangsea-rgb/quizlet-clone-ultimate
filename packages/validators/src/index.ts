@@ -54,3 +54,30 @@ export const EditFlashcardSchema = z.object({
   term: z.string().min(1, "Term is required"),
   definition: z.string().min(1, "Definition is required"),
 });
+
+export const CreateClassSchema = z.object({
+  name: z.string().min(1, "Vui lòng nhập tên lớp học"),
+  schoolName: z.string().min(1, "Vui lòng nhập tên trường học"),
+  cityName: z.string().min(1, "Vui lòng nhập tên thành phố"),
+  countryName: z.string().min(1, "Vui lòng nhập tên quốc gia"),
+});
+
+export type CreateClassValues = z.infer<typeof CreateClassSchema>;
+
+export const EditClassSchema = CreateClassSchema.merge(
+  z.object({
+    id: z.string().min(1, "Class id is required"),
+  }),
+);
+
+export type EditClassValues = z.infer<typeof EditClassSchema>;
+
+export const AddSetToClassSchema = z.object({
+  classId: z.string(),
+  studySetId: z.string(),
+});
+
+export const AddFolderToClassSchema = z.object({
+  classId: z.string(),
+  folderId: z.string(),
+});
