@@ -31,6 +31,7 @@ import { toast } from "@acme/ui/toast";
 import { CreateFolderSchema, EditFolderSchema } from "@acme/validators";
 
 import { api } from "~/trpc/react";
+import { useTranslation } from "~/contexts/i18n-context";
 
 interface FolderDialogProps {
   children?: ReactNode;
@@ -46,6 +47,8 @@ const FolderDialog = ({
   defaultValues,
 }: FolderDialogProps) => {
   const utils = api.useUtils();
+  const { t } = useTranslation();
+
   const form = useForm({
     schema: defaultValues ? EditFolderSchema : CreateFolderSchema,
     defaultValues: defaultValues ?? {
@@ -53,17 +56,18 @@ const FolderDialog = ({
       description: "",
     },
   });
+
   const create = api.folder.create.useMutation({
     async onSuccess(data) {
       await utils.folder.invalidate();
       toast.success(
         <span>
-          Successfully created new folder, you can find it{" "}
+          Đã tạo thành công thư mục mới, bạn có thể xem{" "}
           <Link
             href={`/users/${data.userId}/folders/${data.slug}`}
             className="underline"
           >
-            here
+            tại đây
           </Link>
         </span>,
       );
@@ -73,13 +77,14 @@ const FolderDialog = ({
       }
     },
     onError() {
-      toast.error("Couldn't create folder, try again");
+      toast.error("Không thể tạo thư mục, vui lòng thử lại");
     },
   });
+
   const edit = api.folder.edit.useMutation({
     async onSuccess(data) {
       await utils.folder.invalidate();
-      toast.success("Saved folder");
+      toast.success("Đã lưu thư mục");
       form.reset({
         name: data.name,
         description: data.description ?? undefined,
@@ -89,7 +94,7 @@ const FolderDialog = ({
       }
     },
     onError() {
-      toast.error("Couldn't save folder. Try again");
+      toast.error("Không thể lưu thư mục, vui lòng thử lại");
     },
   });
 
@@ -106,30 +111,32 @@ const FolderDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent>
+      <DialogContent className="max-w-md select-none">
         <DialogHeader>
-          <DialogTitle>{defaultValues ? "Edit" : "Create"} folder</DialogTitle>
+          <DialogTitle>
+            {defaultValues ? t("editFolder") : t("createFolder")}
+          </DialogTitle>
           <DialogDescription>
-            Manage your study sets within folder.
+            {t("manageStudySetsInFolder")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel className="font-semibold">{t("folderName")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isPending}
-                      placeholder="Biology"
+                      placeholder="Ví dụ: Lịch sử, Hoá học..."
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    This is your public display name.
+                    {t("publicDisplayName")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -140,33 +147,34 @@ const FolderDialog = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (optional)</FormLabel>
+                  <FormLabel className="font-semibold">
+                    {t("descriptionOptional")}
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       disabled={isPending}
-                      placeholder="Biology exam study sets..."
+                      placeholder="Mô tả ngắn về thư mục của bạn..."
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    This is your public display name.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-2">
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="outline" className="font-bold">
+                  {t("close")}
+                </Button>
               </DialogClose>
 
-              <Button disabled={isPending} type="submit">
+              <Button disabled={isPending} type="submit" className="font-bold">
                 {isPending ? (
                   <Loader2Icon className="size-4 animate-spin" />
                 ) : defaultValues ? (
-                  "Save"
+                  t("save")
                 ) : (
-                  "Create"
+                  t("create")
                 )}
               </Button>
             </div>

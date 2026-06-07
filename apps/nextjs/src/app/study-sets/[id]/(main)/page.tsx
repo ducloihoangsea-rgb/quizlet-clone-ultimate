@@ -11,6 +11,7 @@ import StudyModes from "~/components/study-set/study-modes";
 import StudySetCTA from "~/components/study-set/study-set-cta";
 import StudySetFlashcards from "~/components/study-set/study-set-flashcards";
 import StudySetInfo from "~/components/study-set/study-set-info";
+import EditStudySetButton from "~/components/study-set/edit-study-set-button";
 import FlashcardsModeProvider from "~/contexts/flashcards-mode-context";
 import { api, HydrateClient } from "~/trpc/server";
 
@@ -57,11 +58,7 @@ export default async function StudySet({ params: { id } }: StudySetProps) {
           </div>
           <StudySetFlashcards session={session} />
           {userId === session?.user.id && (
-            <Link href={`/study-sets/${id}/edit`}>
-              <Button size="lg" className="m-auto mb-8 block">
-                Add or Remove Terms
-              </Button>
-            </Link>
+            <EditStudySetButton id={id} />
           )}
           {otherStudySets.length > 0 && (
             <OtherStudySets studySets={otherStudySets} />

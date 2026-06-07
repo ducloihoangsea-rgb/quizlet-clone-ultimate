@@ -20,7 +20,25 @@ export const translations = {
     changeLanguage: "Đổi ngôn ngữ",
     vietnamese: "Tiếng Việt",
     english: "Tiếng Anh",
-    chinese: "Tiếng Trung"
+    chinese: "Tiếng Trung",
+    
+    // New translation keys
+    flashcards: "Thẻ ghi nhớ",
+    learn: "Học",
+    test: "Kiểm tra",
+    match: "Ghép thẻ",
+    term: "Thuật ngữ",
+    createdBy: "Tạo bởi",
+    termsInSet: "Thuật ngữ trong học phần này",
+    addOrRemoveTerms: "Thêm hoặc bớt thuật ngữ",
+    createFolder: "Tạo thư mục",
+    editFolder: "Sửa thư mục",
+    manageStudySetsInFolder: "Quản lý các học phần trong thư mục của bạn.",
+    folderName: "Tên thư mục",
+    descriptionOptional: "Mô tả (tùy chọn)",
+    publicDisplayName: "Thông tin này hiển thị công khai.",
+    close: "Đóng",
+    save: "Lưu"
   },
   en: {
     home: "Home",
@@ -43,7 +61,25 @@ export const translations = {
     changeLanguage: "Change Language",
     vietnamese: "Vietnamese",
     english: "English",
-    chinese: "Chinese"
+    chinese: "Chinese",
+
+    // New translation keys
+    flashcards: "Flashcards",
+    learn: "Learn",
+    test: "Test",
+    match: "Match",
+    term: "Term",
+    createdBy: "Created by",
+    termsInSet: "Terms in this set",
+    addOrRemoveTerms: "Add or Remove Terms",
+    createFolder: "Create folder",
+    editFolder: "Edit folder",
+    manageStudySetsInFolder: "Manage your study sets within folder.",
+    folderName: "Name",
+    descriptionOptional: "Description (optional)",
+    publicDisplayName: "This is your public display name.",
+    close: "Close",
+    save: "Save"
   },
   zh: {
     home: "首页",
@@ -66,6 +102,24 @@ export const translations = {
     changeLanguage: "更换语言",
     vietnamese: "越南语",
     english: "英语",
-    chinese: "中文"
+    chinese: "中文",
+
+    // New translation keys
+    flashcards: "单词 hospital / 抽认卡",
+    learn: "学习",
+    test: "测试",
+    match: "配对",
+    term: "词条",
+    createdBy: "创建者",
+    termsInSet: "本学习集中的词条",
+    addOrRemoveTerms: "添加或删除词条",
+    createFolder: "创建文件夹",
+    editFolder: "编辑文件夹",
+    manageStudySetsInFolder: "管理文件夹中的学习集。",
+    folderName: "名称",
+    descriptionOptional: "描述（选填）",
+    publicDisplayName: "这是您的公开显示名称。",
+    close: "关闭",
+    save: "保存"
   }
 };
