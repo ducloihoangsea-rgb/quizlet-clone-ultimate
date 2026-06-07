@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useRouter } from "next/navigation";
 import { Loader2Icon, Trash2, Trash2Icon } from "lucide-react";
 
@@ -18,29 +19,42 @@ import { toast } from "@acme/ui/toast";
 
 import { api } from "~/trpc/react";
 
-const DeleteFolderDialog = ({ id, userId }: { id: string; userId: string }) => {
+interface DeleteFolderDialogProps {
+  id: string;
+  userId: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
+}
+
+const DeleteFolderDialog = ({ 
+  id, 
+  userId, 
+  open, 
+  onOpenChange,
+  children 
+}: DeleteFolderDialogProps) => {
+  const router = useRouter();
   const { mutate, isPending } = api.folder.delete.useMutation({
     onSuccess() {
       toast.success("Successfully deleted folder");
+      if (onOpenChange) {
+        onOpenChange(false);
+      }
       router.push(`/users/${userId}/folders`);
     },
     onError() {
       toast.error("Couldn't delete folder, try again");
     },
   });
-  const router = useRouter();
 
   const deleteFolder = () => {
     mutate({ id });
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button size="icon" variant="destructive">
-          <Trash2 size={16} />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Are you absolutely sure?</DialogTitle>

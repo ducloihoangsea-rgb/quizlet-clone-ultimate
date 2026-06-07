@@ -20,9 +20,10 @@ import FolderStudySetCard from "./folder-study-set-card";
 
 interface FolderStudySetsDialogProps {
   userId: string;
+  children?: React.ReactNode;
 }
 
-const FolderStudySetsDialog = ({ userId }: FolderStudySetsDialogProps) => {
+const FolderStudySetsDialog = ({ userId, children }: FolderStudySetsDialogProps) => {
   const { slug }: { slug: string } = useParams();
   const [studySets] = api.studySet.allByUser.useSuspenseQuery({ userId });
   const [folder] = api.folder.bySlug.useSuspenseQuery({ slug });
@@ -37,23 +38,27 @@ const FolderStudySetsDialog = ({ userId }: FolderStudySetsDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="icon" variant="outline">
-          <Plus size={16} />
-        </Button>
+        {children ? (
+          children
+        ) : (
+          <Button size="icon" variant="outline">
+            <Plus size={16} />
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add/remove study set from folder</DialogTitle>
+          <DialogTitle>Thêm/Xóa học phần vào thư mục</DialogTitle>
           <DialogDescription>
-            Manage study sets within your folder.
+            Quản lý các học phần nằm trong thư mục của bạn.
           </DialogDescription>
         </DialogHeader>
         <Link href="/create-set">
-          <Button className="w-full">Create new study set</Button>
+          <Button className="w-full font-bold mb-4">Tạo học phần mới</Button>
         </Link>
 
         {allStudySets.length > 0 ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
             {allStudySets.map((set) => (
               <FolderStudySetCard
                 key={set.id}
@@ -64,7 +69,7 @@ const FolderStudySetsDialog = ({ userId }: FolderStudySetsDialogProps) => {
             ))}
           </div>
         ) : (
-          <Empty message="You have no study sets yet" className="my-4" />
+          <Empty message="Bạn chưa tạo học phần nào" className="my-4" />
         )}
       </DialogContent>
     </Dialog>

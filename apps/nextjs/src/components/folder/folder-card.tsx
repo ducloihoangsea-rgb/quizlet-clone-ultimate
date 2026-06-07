@@ -3,8 +3,6 @@ import Link from "next/link";
 import { Folder } from "lucide-react";
 
 import type { RouterOutputs } from "@acme/api";
-import { Badge } from "@acme/ui/badge";
-import { Card, CardContent } from "@acme/ui/card";
 
 const FolderCard = ({
   folder,
@@ -14,16 +12,23 @@ const FolderCard = ({
   const { name, studySetsCount, userId, slug } = folder;
 
   return (
-    <Link href={`/users/${userId}/folders/${slug}`}>
-      <Card className="transition duration-200 hover:shadow-md">
-        <CardContent className="p-6">
-          <Badge className="mb-3">{studySetsCount} sets</Badge>
-          <div className="flex items-center gap-2">
-            <Folder size={24} />
-            <span>{name}</span>
+    <Link href={`/users/${userId}/folders/${slug}`} className="block select-none">
+      <div className="w-full border rounded-xl p-5 bg-card hover:bg-accent/40 hover:border-muted-foreground/30 active:scale-[0.99] transition-all cursor-pointer space-y-3 shadow-sm">
+        {/* Study sets count text at top-left */}
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
+          {studySetsCount} mục
+        </span>
+        
+        {/* Folder Icon and Folder Name */}
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-muted rounded-lg text-muted-foreground shrink-0">
+            <Folder size={20} className="fill-current opacity-70" />
           </div>
-        </CardContent>
-      </Card>
+          <span className="font-bold text-base md:text-lg tracking-tight truncate flex-1">
+            {name}
+          </span>
+        </div>
+      </div>
     </Link>
   );
 };

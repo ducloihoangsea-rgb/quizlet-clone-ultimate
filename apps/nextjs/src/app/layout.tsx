@@ -15,6 +15,7 @@ import { auth } from "@acme/auth";
 import CreateActivity from "~/components/layout/create-activity";
 import CreateFolderDialog from "~/components/layout/create-folder-dialog";
 import Navbar from "~/components/layout/navbar";
+import MainLayout from "~/components/layout/main-layout";
 import SignInDialog from "~/components/layout/sign-in-dialog";
 import SignInWithOauth from "~/components/layout/sign-in-with-oauth";
 import FolderDialogProvider from "~/contexts/folder-dialog-context";
@@ -62,10 +63,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             <FolderDialogProvider>
               <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={["light", "dark", "dracula"]}>
                 <TRPCReactProvider>
-                  <Navbar session={session} />
-                  <main className="container min-h-[calc(100vh-65px)] py-8">
-                    {props.children}
-                  </main>
+                  <MainLayout session={session}>
+                    <Navbar session={session} />
+                    <main className="flex-1 w-full min-h-[calc(100vh-65px)] py-6 px-4 md:px-8">
+                      {props.children}
+                    </main>
+                  </MainLayout>
                   <Toaster richColors />
                   {session ? (
                     <>

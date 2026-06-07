@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@acme/auth";
 
-import UserStudySets from "~/components/user/user-study-sets";
+import Dashboard from "~/components/user/dashboard";
 
 export const metadata: Metadata = {
   title: "Quizlet - Latest",
@@ -16,5 +16,5 @@ export default async function Latest() {
     redirect("/");
   }
 
-  return <UserStudySets userId={session.user.id} />;
+  return <Dashboard userId={session.user.id} />;
 }
