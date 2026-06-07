@@ -1,7 +1,9 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
 import type { Session } from "@acme/auth";
-import { signOut } from "@acme/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@acme/ui/avatar";
 import {
   DropdownMenu,
@@ -9,18 +11,25 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
 } from "@acme/ui/dropdown-menu";
 import { useTheme } from "@acme/ui/theme";
+
+import { signOutAction } from "~/actions/sign-out";
 import { useTranslation } from "~/contexts/i18n-context";
 
 const UserDropdown = ({ user }: { user: Session["user"] }) => {
   const { id, image, name, email } = user;
   const { t, language, setLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <DropdownMenu>
@@ -42,7 +51,7 @@ const UserDropdown = ({ user }: { user: Session["user"] }) => {
           {email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         <Link href={`/users/${id}`}>
           <DropdownMenuItem>{t("profile")}</DropdownMenuItem>
         </Link>
@@ -56,25 +65,33 @@ const UserDropdown = ({ user }: { user: Session["user"] }) => {
           <DropdownMenuSubContent>
             <DropdownMenuItem
               onClick={() => setTheme("light")}
-              className={theme === "light" ? "font-bold text-primary" : ""}
+              className={
+                mounted && theme === "light" ? "font-bold text-primary" : ""
+              }
             >
               {t("light")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTheme("dark")}
-              className={theme === "dark" ? "font-bold text-primary" : ""}
+              className={
+                mounted && theme === "dark" ? "font-bold text-primary" : ""
+              }
             >
               {t("dark")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTheme("dracula")}
-              className={theme === "dracula" ? "font-bold text-primary" : ""}
+              className={
+                mounted && theme === "dracula" ? "font-bold text-primary" : ""
+              }
             >
               {t("dracula")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTheme("system")}
-              className={theme === "system" ? "font-bold text-primary" : ""}
+              className={
+                mounted && theme === "system" ? "font-bold text-primary" : ""
+              }
             >
               {t("system")}
             </DropdownMenuItem>
@@ -107,19 +124,9 @@ const UserDropdown = ({ user }: { user: Session["user"] }) => {
         </DropdownMenuSub>
 
         <DropdownMenuSeparator />
-        <form>
-          <DropdownMenuItem asChild>
-            <button
-              className="w-full text-left"
-              formAction={async () => {
-                "use server";
-                await signOut();
-              }}
-            >
-              {t("signout")}
-            </button>
-          </DropdownMenuItem>
-        </form>
+        <DropdownMenuItem onClick={() => signOutAction()}>
+          {t("signout")}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
