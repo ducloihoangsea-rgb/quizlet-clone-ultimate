@@ -7,6 +7,7 @@ import Empty from "@acme/ui/empty";
 import { api } from "~/trpc/react";
 import StudySetCard from "../shared/study-set-card";
 import StudySetSkeletonGrid from "../shared/study-set-skeleton-grid";
+import { useTranslation } from "~/contexts/i18n-context";
 
 const LatestStudySetsGrid = () => {
   const [studySets] = api.studySet.latest.useSuspenseQuery();
@@ -25,9 +26,11 @@ const LatestStudySetsGrid = () => {
 };
 
 const LatestStudySets = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="mt-8">
-      <h2 className="mb-6 text-2xl font-bold">Latest study sets</h2>
+      <h2 className="mb-6 text-2xl font-bold">{t("latestSets")}</h2>
       <Suspense fallback={<StudySetSkeletonGrid />}>
         <LatestStudySetsGrid />
       </Suspense>

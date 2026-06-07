@@ -47,4 +47,26 @@
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
   }
+
+  .dracula {
+    --background: 231 15% 18%; /* #282a36 */
+    --foreground: 60 30% 96%; /* #f8f8f2 */
+    --card: 231 15% 18%;
+    --card-foreground: 60 30% 96%;
+    --popover: 231 15% 18%;
+    --popover-foreground: 60 30% 96%;
+    --primary: 265 83% 78%; /* #bd93f9 - Dracula Purple */
+    --primary-foreground: 231 15% 18%;
+    --secondary: 231 14% 31%; /* #44475a - Dracula Selection */
+    --secondary-foreground: 60 30% 96%;
+    --muted: 231 14% 31%;
+    --muted-foreground: 60 10% 70%;
+    --accent: 231 14% 31%;
+    --accent-foreground: 60 30% 96%;
+    --destructive: 355 100% 75%; /* #ff5555 - Dracula Red */
+    --destructive-foreground: 231 15% 18%;
+    --border: 231 14% 31%;
+    --input: 231 14% 31%;
+    --ring: 265 83% 78%;
+  }
 }

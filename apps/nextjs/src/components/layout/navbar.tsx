@@ -8,8 +8,11 @@ import CreateOptionsDropdown from "./create-options-dropdown";
 import MobileMenu from "./mobile-menu";
 import SignInButton from "./sign-in-button";
 import UserDropdown from "./user-dropdown";
+import { useTranslation } from "~/contexts/i18n-context";
 
 const Navbar = ({ session }: { session: Session | null }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex min-h-16 items-center justify-between border-b px-4">
       <div className="flex items-center">
@@ -25,7 +28,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
           className="mx-2 hidden md:inline"
         >
           <Button variant="link" className="text-foreground">
-            Home
+            {t("home")}
           </Button>
         </Link>
         <CreateOptionsDropdown session={session} />

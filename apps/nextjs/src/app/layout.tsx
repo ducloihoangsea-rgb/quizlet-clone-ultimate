@@ -19,6 +19,7 @@ import SignInDialog from "~/components/layout/sign-in-dialog";
 import SignInWithOauth from "~/components/layout/sign-in-with-oauth";
 import FolderDialogProvider from "~/contexts/folder-dialog-context";
 import SignInDialogProvider from "~/contexts/sign-in-dialog-context";
+import { LanguageProvider } from "~/contexts/i18n-context";
 import { env } from "~/env";
 
 export const metadata: Metadata = {
@@ -56,29 +57,31 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           GeistMono.variable,
         )}
       >
-        <SignInDialogProvider>
-          <FolderDialogProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <TRPCReactProvider>
-                <Navbar session={session} />
-                <main className="container min-h-[calc(100vh-65px)] py-8">
-                  {props.children}
-                </main>
-                <Toaster richColors />
-                {session ? (
-                  <>
-                    <CreateActivity />
-                    <CreateFolderDialog />
-                  </>
-                ) : (
-                  <SignInDialog>
-                    <SignInWithOauth />
-                  </SignInDialog>
-                )}
-              </TRPCReactProvider>
-            </ThemeProvider>
-          </FolderDialogProvider>
-        </SignInDialogProvider>
+        <LanguageProvider>
+          <SignInDialogProvider>
+            <FolderDialogProvider>
+              <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={["light", "dark", "dracula"]}>
+                <TRPCReactProvider>
+                  <Navbar session={session} />
+                  <main className="container min-h-[calc(100vh-65px)] py-8">
+                    {props.children}
+                  </main>
+                  <Toaster richColors />
+                  {session ? (
+                    <>
+                      <CreateActivity />
+                      <CreateFolderDialog />
+                    </>
+                  ) : (
+                    <SignInDialog>
+                      <SignInWithOauth />
+                    </SignInDialog>
+                  )}
+                </TRPCReactProvider>
+              </ThemeProvider>
+            </FolderDialogProvider>
+          </SignInDialogProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

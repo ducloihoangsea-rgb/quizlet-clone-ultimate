@@ -7,6 +7,7 @@ import Empty from "@acme/ui/empty";
 import { api } from "~/trpc/react";
 import StudySetCard from "../shared/study-set-card";
 import StudySetSkeletonGrid from "../shared/study-set-skeleton-grid";
+import { useTranslation } from "~/contexts/i18n-context";
 
 const PopularStudySetsGrid = () => {
   const [studySets] = api.studySet.popular.useSuspenseQuery();
@@ -25,9 +26,11 @@ const PopularStudySetsGrid = () => {
 };
 
 const PopularStudySets = () => {
+  const { t } = useTranslation();
+
   return (
     <div>
-      <h2 className="mb-6 text-2xl font-bold">Popular study sets</h2>
+      <h2 className="mb-6 text-2xl font-bold">{t("popularSets")}</h2>
       <Suspense fallback={<StudySetSkeletonGrid />}>
         <PopularStudySetsGrid />
       </Suspense>

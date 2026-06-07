@@ -10,10 +10,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@acme/ui/dropdown-menu";
+import { useTheme } from "@acme/ui/theme";
+import { useTranslation } from "~/contexts/i18n-context";
 
 const UserDropdown = ({ user }: { user: Session["user"] }) => {
   const { id, image, name, email } = user;
+  const { t, language, setLanguage } = useTranslation();
+  const { theme, setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -30,33 +37,88 @@ const UserDropdown = ({ user }: { user: Session["user"] }) => {
           <AvatarFallback>{name?.at(0) ?? "U"}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel className="max-w-[120px] overflow-hidden text-ellipsis">
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
           {email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        
         <Link href={`/users/${id}`}>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
+          <DropdownMenuItem>{t("profile")}</DropdownMenuItem>
         </Link>
         <Link href="/settings">
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem>{t("settings")}</DropdownMenuItem>
         </Link>
-        <Link href="/settings#dark-mode">
-          <DropdownMenuItem>Dark mode</DropdownMenuItem>
-        </Link>
+
+        {/* Theme switching submenu */}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>{t("theme")}</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem
+              onClick={() => setTheme("light")}
+              className={theme === "light" ? "font-bold text-primary" : ""}
+            >
+              {t("light")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setTheme("dark")}
+              className={theme === "dark" ? "font-bold text-primary" : ""}
+            >
+              {t("dark")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setTheme("dracula")}
+              className={theme === "dracula" ? "font-bold text-primary" : ""}
+            >
+              {t("dracula")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setTheme("system")}
+              className={theme === "system" ? "font-bold text-primary" : ""}
+            >
+              {t("system")}
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+
+        {/* Language switching submenu */}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>{t("language")}</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem
+              onClick={() => setLanguage("vi")}
+              className={language === "vi" ? "font-bold text-primary" : ""}
+            >
+              🇻🇳 {t("vietnamese")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setLanguage("en")}
+              className={language === "en" ? "font-bold text-primary" : ""}
+            >
+              🇬🇧 {t("english")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setLanguage("zh")}
+              className={language === "zh" ? "font-bold text-primary" : ""}
+            >
+              🇨🇳 {t("chinese")}
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+
+        <DropdownMenuSeparator />
         <form>
           <DropdownMenuItem asChild>
             <button
-              className="w-full"
+              className="w-full text-left"
               formAction={async () => {
                 "use server";
                 await signOut();
               }}
             >
-              Sign out
+              {t("signout")}
             </button>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild></DropdownMenuItem>
         </form>
       </DropdownMenuContent>
     </DropdownMenu>
