@@ -44,8 +44,16 @@ export const authConfig = {
   secret: env.AUTH_SECRET,
   session: { strategy: "jwt" },
   providers: [
-    Google,
-    Github,
+    Google({
+      clientId: env.AUTH_GOOGLE_ID,
+      clientSecret: env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    Github({
+      clientId: env.AUTH_GITHUB_ID,
+      clientSecret: env.AUTH_GITHUB_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
 
     Credentials({
       name: "Credentials",
