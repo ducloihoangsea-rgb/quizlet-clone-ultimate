@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@acme/ui/toast";
-import { useTranslation } from "~/contexts/i18n-context";
+import { useTranslation, type Language } from "~/contexts/i18n-context";
+import { Globe } from "lucide-react";
 
 // Custom Google, Facebook, Github SVG icons
 const GoogleIcon = () => (
@@ -31,15 +32,26 @@ interface SignUpClientProps {
   initialMode: "signup" | "signin";
   onSignInGoogle: () => Promise<void>;
   onSignInGithub: () => Promise<void>;
+  onSignInCredentials: (formData: FormData) => Promise<void>;
+  onRegister: (formData: {
+    email: string;
+    password?: string;
+    username: string;
+    birthDate?: string;
+  }) => Promise<{ error?: string; success?: boolean }>;
 }
 
 const SignUpClient = ({ 
   initialMode, 
   onSignInGoogle, 
-  onSignInGithub 
+  onSignInGithub,
+  onSignInCredentials,
+  onRegister
 }: SignUpClientProps) => {
   const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const router = useRouter();
+  const { language, setLanguage, t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Form states
   const [email, setEmail] = useState("");
@@ -49,9 +61,64 @@ const SignUpClient = ({
   const [birthMonth, setBirthMonth] = useState("1");
   const [birthYear, setBirthYear] = useState("2010");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Đăng ký bằng email hiện đang được phát triển. Vui lòng đăng nhập nhanh bằng Google hoặc Github!");
+    if (isLoading) return;
+
+    if (!email || !password || (mode === "signup" && !username)) {
+      toast.error("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      if (mode === "signup") {
+        // Đăng ký tài khoản
+        const birthDate = `${birthYear}-${birthMonth}-${birthDay}`;
+        const res = await onRegister({
+          email,
+          password,
+          username,
+          birthDate,
+        });
+
+        if (res.error) {
+          if (res.error === "email_exists") {
+            toast.error("Email này đã tồn tại trong hệ thống!");
+          } else if (res.error === "missing_fields") {
+            toast.error("Vui lòng điền đầy đủ các trường thông tin!");
+          } else {
+            toast.error("Đăng ký thất bại. Vui lòng kiểm tra lại!");
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        toast.success("Đăng ký tài khoản thành công! Đang tiến hành đăng nhập...");
+        
+        // Tự động đăng nhập sau khi đăng ký thành công
+        const formData = new FormData();
+        formData.append("email", email);
+        formData.append("password", password);
+        await onSignInCredentials(formData);
+      } else {
+        // Đăng nhập tài khoản
+        const formData = new FormData();
+        formData.append("email", email);
+        formData.append("password", password);
+        
+        await onSignInCredentials(formData);
+      }
+    } catch (err: any) {
+      // Tránh báo lỗi giả lập nếu đó là lỗi redirect nội bộ của NextJS (NextAuth điều hướng thành công)
+      if (err.message && err.message.includes("NEXT_REDIRECT")) {
+        return;
+      }
+      console.error(err);
+      toast.error("Đăng nhập thất bại! Vui lòng kiểm tra lại email và mật khẩu.");
+      setIsLoading(false);
+    }
   };
 
   const handleFacebookLogin = () => {
@@ -82,9 +149,7 @@ const SignUpClient = ({
         {/* Branding text */}
         <div className="space-y-4 pt-16 z-10">
           <h2 className="text-3xl lg:text-4xl font-extrabold leading-tight tracking-tight">
-            {mode === "signup" 
-              ? "Cách tốt nhất để học. Đăng ký miễn phí." 
-              : "Cách tốt nhất để học. Đăng nhập để bắt đầu."}
+            {mode === "signup" ? t("signUpTitle") : t("signInTitle")}
           </h2>
         </div>
 
@@ -144,6 +209,7 @@ const SignUpClient = ({
           {/* Tabs header */}
           <div className="flex items-center gap-8 border-b pb-1 select-none shrink-0 justify-center sm:justify-start">
             <button 
+              disabled={isLoading}
               onClick={() => setMode("signup")}
               className={`font-extrabold text-xl pb-2 transition-all border-b-4 outline-none ${
                 mode === "signup" 
@@ -151,9 +217,10 @@ const SignUpClient = ({
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              Đăng ký
+              {t("signUp")}
             </button>
             <button 
+              disabled={isLoading}
               onClick={() => setMode("signin")}
               className={`font-extrabold text-xl pb-2 transition-all border-b-4 outline-none ${
                 mode === "signin" 
@@ -161,7 +228,7 @@ const SignUpClient = ({
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              Đăng nhập
+              {t("signin")}
             </button>
           </div>
 
@@ -170,28 +237,31 @@ const SignUpClient = ({
             <form action={onSignInGoogle}>
               <button 
                 type="submit"
-                className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99]"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99] disabled:opacity-50"
               >
                 <GoogleIcon />
-                <span>Tiếp tục với Google</span>
+                <span>{t("continueWithGoogle")}</span>
               </button>
             </form>
 
             <button 
               onClick={handleFacebookLogin}
-              className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99]"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99] disabled:opacity-50"
             >
               <FacebookIcon />
-              <span>Tiếp tục với Facebook</span>
+              <span>{t("continueWithFacebook")}</span>
             </button>
 
             <form action={onSignInGithub}>
               <button 
                 type="submit"
-                className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99]"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99] disabled:opacity-50"
               >
                 <GithubIcon />
-                <span>Tiếp tục với Github</span>
+                <span>{t("continueWithGithub")}</span>
               </button>
             </form>
           </div>
@@ -199,7 +269,7 @@ const SignUpClient = ({
           {/* Divider line */}
           <div className="relative flex py-2 items-center shrink-0">
             <div className="flex-grow border-t border-muted"></div>
-            <span className="flex-shrink mx-4 text-xs font-bold text-muted-foreground uppercase tracking-widest bg-background">hoặc email</span>
+            <span className="flex-shrink mx-4 text-xs font-bold text-muted-foreground uppercase tracking-widest bg-background">{t("orEmail")}</span>
             <div className="flex-grow border-t border-muted"></div>
           </div>
 
@@ -209,35 +279,38 @@ const SignUpClient = ({
               <>
                 {/* BirthDate drop-down */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">Ngày sinh</label>
+                  <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">{t("birthDay")}</label>
                   <div className="grid grid-cols-3 gap-2">
                     <select 
+                      disabled={isLoading}
                       value={birthDay}
                       onChange={(e) => setBirthDay(e.target.value)}
                       className="bg-muted/40 border rounded-xl py-2 px-3 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all"
                     >
                       {Array.from({ length: 31 }, (_, i) => String(i + 1)).map(d => (
-                        <option key={d} value={d}>Ngày {d}</option>
+                        <option key={d} value={d}>{t("day")} {d}</option>
                       ))}
                     </select>
 
                     <select 
+                      disabled={isLoading}
                       value={birthMonth}
                       onChange={(e) => setBirthMonth(e.target.value)}
                       className="bg-muted/40 border rounded-xl py-2 px-3 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all"
                     >
                       {Array.from({ length: 12 }, (_, i) => String(i + 1)).map(m => (
-                        <option key={m} value={m}>Tháng {m}</option>
+                        <option key={m} value={m}>{t("month")} {m}</option>
                       ))}
                     </select>
 
                     <select 
+                      disabled={isLoading}
                       value={birthYear}
                       onChange={(e) => setBirthYear(e.target.value)}
                       className="bg-muted/40 border rounded-xl py-2 px-3 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all"
                     >
                       {Array.from({ length: 60 }, (_, i) => String(2026 - i)).map(y => (
-                        <option key={y} value={y}>Năm {y}</option>
+                        <option key={y} value={y}>{t("year")} {y}</option>
                       ))}
                     </select>
                   </div>
@@ -249,12 +322,13 @@ const SignUpClient = ({
             <div className="space-y-1.5">
               <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">Email</label>
               <input 
+                disabled={isLoading}
                 type="email" 
                 placeholder="tên@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all"
+                className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all disabled:opacity-50"
               />
             </div>
 
@@ -262,14 +336,15 @@ const SignUpClient = ({
               <>
                 {/* Username field */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">Tên người dùng</label>
+                  <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">{t("username")}</label>
                   <input 
+                    disabled={isLoading}
                     type="text" 
                     placeholder="andrew123"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all"
+                    className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all disabled:opacity-50"
                   />
                 </div>
               </>
@@ -277,22 +352,23 @@ const SignUpClient = ({
 
             {/* Password Field */}
             <div className="space-y-1.5">
-              <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">Mật khẩu</label>
+              <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">{t("password")}</label>
               <input 
+                disabled={isLoading}
                 type="password" 
                 placeholder="********"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all"
+                className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all disabled:opacity-50"
               />
             </div>
 
             {mode === "signup" && (
               <label className="flex items-start gap-2.5 py-1 cursor-pointer select-none">
-                <input type="checkbox" required className="mt-0.5" />
+                <input disabled={isLoading} type="checkbox" required className="mt-0.5" />
                 <span className="text-xs text-muted-foreground leading-normal">
-                  Tôi chấp nhận <b>Điều khoản dịch vụ</b> và <b>Chính sách quyền riêng tư</b> của Quizlet Clone.
+                  {t("iAcceptTerms")}
                 </span>
               </label>
             )}
@@ -300,9 +376,16 @@ const SignUpClient = ({
             {/* Submit button */}
             <button 
               type="submit"
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl transition-all outline-none shadow-md hover:shadow-blue-500/10 active:scale-[0.99] mt-2"
+              disabled={isLoading}
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl transition-all outline-none shadow-md hover:shadow-blue-500/10 active:scale-[0.99] mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {mode === "signup" ? "Đăng ký" : "Đăng nhập"}
+              {isLoading && (
+                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              {mode === "signup" ? t("signUp") : t("signin")}
             </button>
           </form>
 
@@ -310,19 +393,35 @@ const SignUpClient = ({
           <div className="text-center shrink-0">
             {mode === "signup" ? (
               <button 
+                disabled={isLoading}
                 onClick={() => setMode("signin")}
-                className="text-xs font-bold text-muted-foreground hover:text-foreground transition-all"
+                className="text-xs font-bold text-muted-foreground hover:text-foreground transition-all disabled:opacity-50"
               >
-                Bạn đã có tài khoản rồi? <span className="text-blue-600 hover:underline">Đăng nhập</span>
+                <span className="text-blue-600 hover:underline">{t("alreadyHaveAccount")}</span>
               </button>
             ) : (
               <button 
+                disabled={isLoading}
                 onClick={() => setMode("signup")}
-                className="text-xs font-bold text-muted-foreground hover:text-foreground transition-all"
+                className="text-xs font-bold text-muted-foreground hover:text-foreground transition-all disabled:opacity-50"
               >
-                Bạn chưa có tài khoản? <span className="text-blue-600 hover:underline">Đăng ký</span>
+                <span className="text-blue-600 hover:underline">{t("dontHaveAccount")}</span>
               </button>
             )}
+          </div>
+
+          {/* Language Selector at the very bottom of signup page */}
+          <div className="pt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground select-none shrink-0 border-t border-muted/30 mt-4 w-full">
+            <Globe className="w-4 h-4 text-muted-foreground" />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="bg-transparent border-none text-xs font-bold text-muted-foreground hover:text-foreground outline-none cursor-pointer transition-all focus:ring-0"
+            >
+              <option value="vi">Tiếng Việt (VI)</option>
+              <option value="en">English (EN)</option>
+              <option value="zh">中文 (ZH)</option>
+            </select>
           </div>
 
         </div>

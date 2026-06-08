@@ -54,13 +54,13 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
       href: session ? "/latest" : "/",
     },
     {
-      label: "Thư viện của bạn",
+      label: t("yourLibrary"),
       icon: FolderHeart,
       href: session ? `/users/${session.user.id}` : "#",
       authRequired: true,
     },
     {
-      label: "Thông báo",
+      label: t("notifications"),
       icon: Bell,
       href: "#",
     }
@@ -144,7 +144,7 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
             <div className="space-y-1">
               {!isCollapsed && (
                 <div className="px-3 py-2 text-xs font-bold text-muted-foreground tracking-wider uppercase">
-                  Lớp học của bạn
+                  {t("yourClasses")}
                 </div>
               )}
               
@@ -181,11 +181,11 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
                   className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-semibold hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors group relative"
                 >
                   <Plus size={18} className="shrink-0" />
-                  {!isCollapsed && <span className="truncate">+ Lớp mới</span>}
+                  {!isCollapsed && <span className="truncate">{t("newClass")}</span>}
                   
                   {isCollapsed && (
                     <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-popover text-popover-foreground text-xs font-semibold invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 whitespace-nowrap shadow-md">
-                      Tạo lớp học mới
+                      {t("createClassTooltip")}
                     </div>
                   )}
                 </button>
@@ -197,7 +197,7 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
             <div className="space-y-1">
               {!isCollapsed && (
                 <div className="px-3 py-2 text-xs font-bold text-muted-foreground tracking-wider uppercase">
-                  Thư mục của bạn
+                  {t("yourFolders")}
                 </div>
               )}
               
@@ -234,11 +234,11 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
                   className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-semibold hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors group relative"
                 >
                   <Plus size={18} className="shrink-0" />
-                  {!isCollapsed && <span className="truncate">Tạo thư mục mới</span>}
+                  {!isCollapsed && <span className="truncate">{t("newFolder")}</span>}
                   
                   {isCollapsed && (
                     <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-popover text-popover-foreground text-xs font-semibold invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 whitespace-nowrap shadow-md">
-                      Tạo thư mục mới
+                      {t("newFolder")}
                     </div>
                   )}
                 </button>
@@ -251,7 +251,7 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
             <div className="space-y-1">
               {!isCollapsed && (
                 <div className="px-3 py-2 text-xs font-bold text-muted-foreground tracking-wider uppercase">
-                  Công cụ của giáo viên
+                  {t("teacherTools")}
                 </div>
               )}
               
@@ -262,11 +262,11 @@ const Sidebar = ({ session, isCollapsed, setIsCollapsed }: SidebarProps) => {
                   )}
                 >
                   <Activity size={18} className="shrink-0" />
-                  {!isCollapsed && <span className="truncate">Giao hoạt động</span>}
+                  {!isCollapsed && <span className="truncate">{t("assignActivity")}</span>}
                   
                   {isCollapsed && (
                     <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-popover text-popover-foreground text-xs font-semibold invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 whitespace-nowrap shadow-md">
-                      Giao hoạt động
+                      {t("assignActivity")}
                     </div>
                   )}
                 </span>

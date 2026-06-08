@@ -31,11 +31,11 @@ export default function Hero() {
       {/* Banner Section */}
       <div className="text-center space-y-6 max-w-2xl mx-auto pt-6">
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-[#1a1b1d] dark:text-white leading-tight">
-          Bạn muốn học như thế nào?
+          {t("studyTitle")}
         </h1>
         
         <p className="text-base sm:text-lg text-muted-foreground font-medium max-w-xl mx-auto leading-relaxed">
-          Nắm vững kiến thức đang học với thẻ ghi nhớ tương tác, bài kiểm tra thử và hoạt động học tập của Quizlet.
+          {t("studyDesc")}
         </p>
         
         <div className="flex flex-col items-center gap-4 pt-2">
@@ -43,14 +43,14 @@ export default function Hero() {
             onClick={openSignIn}
             className="px-10 py-4 bg-[#4257b2] hover:bg-[#3b4c9b] text-white font-extrabold text-base rounded-full transition-all shadow-md active:scale-[0.98] outline-none"
           >
-            Đăng ký miễn phí
+            {t("signUpFree")}
           </button>
           
           <button 
             onClick={openSignIn}
             className="text-sm font-bold text-[#4257b2] dark:text-[#60a5fa] hover:underline transition-all outline-none"
           >
-            Tôi là giáo viên
+            {t("imTeacher")}
           </button>
         </div>
       </div>
@@ -79,19 +79,19 @@ export default function Hero() {
           >
             {/* Header portion */}
             <div className="bg-[#bce6fc] h-32 flex items-center justify-center relative select-none shrink-0">
-              <span className="font-extrabold text-2xl text-[#1a1b1d]">Học</span>
+              <span className="font-extrabold text-2xl text-[#1a1b1d]">{t("learn")}</span>
             </div>
             {/* Simulation portion */}
             <div className="flex-1 p-6 bg-muted/20 dark:bg-muted/5 flex flex-col justify-between">
               <div className="border rounded-2xl p-5 bg-background shadow-sm space-y-4 min-h-[160px] flex flex-col justify-center relative">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest absolute top-3 left-4">Thuật ngữ</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest absolute top-3 left-4">{t("term")}</span>
                 <div className="text-xl font-bold text-center text-[#1a1b1d] dark:text-white leading-normal pt-2">
                   la pintura
                 </div>
               </div>
               <div className="w-full">
                 <div className="w-full bg-background border rounded-xl px-4 py-3 text-xs font-semibold text-muted-foreground/60 shadow-inner flex items-center">
-                  Nhập đáp án
+                  {t("enterAnswer")}
                 </div>
               </div>
             </div>
@@ -104,12 +104,12 @@ export default function Hero() {
           >
             {/* Header portion */}
             <div className="bg-[#2e3895] h-32 flex items-center justify-center relative select-none shrink-0">
-              <span className="font-extrabold text-2xl text-white">Thẻ ghi nhớ</span>
+              <span className="font-extrabold text-2xl text-white">{t("flashcards")}</span>
             </div>
             {/* Simulation portion */}
             <div className="flex-1 p-6 bg-muted/20 dark:bg-muted/5 flex flex-col justify-center">
               <div className="border rounded-2xl p-5 bg-background shadow-md min-h-[200px] flex flex-col justify-between items-center relative rotate-[-2deg] transition-transform group-hover/card:rotate-0">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest absolute top-3 left-4">Thẻ lật</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest absolute top-3 left-4">{t("flashcardMode")}</span>
                 
                 <div className="flex-1 flex flex-col justify-center items-center gap-4 w-full pt-4">
                   {/* Heart SVG */}
@@ -120,7 +120,7 @@ export default function Hero() {
                   </svg>
                   
                   <span className="font-bold text-base text-center text-[#1a1b1d] dark:text-white leading-normal">
-                    tĩnh mạch chủ trên
+                    {t("superiorVenaCava")}
                   </span>
                 </div>
               </div>
@@ -134,12 +134,12 @@ export default function Hero() {
           >
             {/* Header portion */}
             <div className="bg-[#ffcd1f] h-32 flex items-center justify-center relative select-none shrink-0">
-              <span className="font-extrabold text-2xl text-[#1a1b1d]">Kiểm tra</span>
+              <span className="font-extrabold text-2xl text-[#1a1b1d]">{t("test")}</span>
             </div>
             {/* Simulation portion */}
             <div className="flex-1 p-6 bg-muted/20 dark:bg-muted/5 flex flex-col justify-between">
               <div className="text-sm font-bold text-[#1a1b1d] dark:text-white flex justify-between items-center shrink-0">
-                <span>Thời gian: 6 phút</span>
+                <span>{t("time6Min")}</span>
               </div>
               
               <div className="flex-1 flex items-center justify-center py-2">
@@ -153,11 +153,11 @@ export default function Hero() {
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2.5">
                   <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400 flex items-center justify-center text-xs font-bold">✓</div>
-                  <span className="text-sm font-bold text-muted-foreground">Đúng: 9</span>
+                  <span className="text-sm font-bold text-muted-foreground">{t("correctCount")}</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xs font-bold">✕</div>
-                  <span className="text-sm font-bold text-muted-foreground">Sai: 3</span>
+                  <span className="text-sm font-bold text-muted-foreground">{t("incorrectCount")}</span>
                 </div>
               </div>
             </div>
@@ -170,14 +170,14 @@ export default function Hero() {
           >
             {/* Header portion */}
             <div className="bg-[#ffdbd0] h-32 flex items-center justify-center relative select-none shrink-0">
-              <span className="font-extrabold text-2xl text-[#1a1b1d]">Ghép thẻ</span>
+              <span className="font-extrabold text-2xl text-[#1a1b1d]">{t("match")}</span>
             </div>
             {/* Simulation portion */}
             <div className="flex-1 p-5 bg-muted/20 dark:bg-muted/5 flex flex-col justify-center">
               <div className="grid grid-cols-2 gap-3.5 w-full">
                 {/* Lung text box */}
                 <div className="border-2 rounded-xl p-3 bg-background shadow-sm text-center font-bold text-xs flex items-center justify-center min-h-[56px] text-[#1a1b1d] dark:text-white">
-                  phổi
+                  {t("lungs")}
                 </div>
                 
                 {/* Lungs SVG box */}
@@ -192,7 +192,7 @@ export default function Hero() {
                 
                 {/* Active correct connection box */}
                 <div className="col-span-2 border-2 border-green-500 bg-green-50/70 dark:bg-green-950/20 rounded-xl p-3 shadow-sm flex items-center justify-between min-h-[56px]">
-                  <span className="font-bold text-xs text-green-700 dark:text-green-400">Đã ghép đúng</span>
+                  <span className="font-bold text-xs text-green-700 dark:text-green-400">{t("matchedCorrectly")}</span>
                   <div className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center">
                     <Check className="w-3.5 h-3.5 stroke-[3px]" />
                   </div>

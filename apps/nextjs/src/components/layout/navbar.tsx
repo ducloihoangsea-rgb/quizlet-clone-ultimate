@@ -43,7 +43,7 @@ const Navbar = ({ session }: NavbarProps) => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <input
             type="text"
-            placeholder="Học phần, sách giáo khoa, câu hỏi"
+            placeholder={t("searchPlaceholder")}
             className="w-full bg-secondary text-secondary-foreground pl-10 pr-4 py-2 rounded-full text-sm font-medium border border-transparent focus:border-border focus:bg-background focus:outline-none transition-all"
           />
         </div>
@@ -63,7 +63,7 @@ const Navbar = ({ session }: NavbarProps) => {
             
             {/* Premium trial notification badge */}
             <button className="hidden lg:block bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs py-2 px-3 rounded-full transition-colors">
-              Còn 11 ngày dùng thử
+              {t("daysTrial")}
             </button>
           </>
         )}

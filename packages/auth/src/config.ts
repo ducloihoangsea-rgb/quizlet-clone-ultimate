@@ -7,11 +7,14 @@ import { skipCSRFCheck } from "@auth/core";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import { eq } from "drizzle-orm";
 
 import { db } from "@acme/db/client";
 import { Account, Session, User } from "@acme/db/schema";
 
 import { env } from "../env";
+import { verifyPassword } from "./password";
 
 declare module "next-auth" {
   interface Session {
@@ -39,17 +42,60 @@ export const authConfig = {
       }
     : {}),
   secret: env.AUTH_SECRET,
-  providers: [Google, Github],
-  callbacks: {
-    session: (opts) => {
-      if (!("user" in opts))
-        throw new Error("unreachable with session strategy");
+  session: { strategy: "jwt" },
+  providers: [
+    Google,
+    Github,
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
 
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
+        // Tìm kiếm user trong database
+        const users = await db.select().from(User).where(eq(User.email, email)).limit(1);
+        const user = users[0];
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        // Xác thực mật khẩu
+        const isValid = await verifyPassword(password, user.password);
+        if (!isValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      }
+    })
+  ],
+  callbacks: {
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    session: ({ session, token }) => {
       return {
-        ...opts.session,
+        ...session,
         user: {
-          ...opts.session.user,
-          id: opts.user.id,
+          ...session.user,
+          id: token.id as string,
         },
       };
     },
