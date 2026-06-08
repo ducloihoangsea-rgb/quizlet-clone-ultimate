@@ -1,260 +1,216 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
-import { Copy, FilePen, GraduationCap, Puzzle, Star, Zap, CheckCircle2, ChevronRight } from "lucide-react";
-import { Button } from "@acme/ui/button";
+import React, { useRef } from "react";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useSignInDialogContext } from "~/contexts/sign-in-dialog-context";
 import { useTranslation } from "~/contexts/i18n-context";
 
 export default function Hero() {
   const { t } = useTranslation();
   const { onOpenChange } = useSignInDialogContext();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const openSignIn = () => {
     onOpenChange(true);
   };
 
-  const features = [
-    {
-      Icon: Copy,
-      color: "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-900",
-      title: t("flashcards") || "Thẻ ghi nhớ",
-      desc: "Chuyển đổi tài liệu học tập của bạn thành các thẻ ghi nhớ trực quan để ôn tập và ghi nhớ nhanh chóng mọi lúc mọi nơi.",
-    },
-    {
-      Icon: GraduationCap,
-      color: "bg-green-100 text-green-600 dark:bg-green-950/60 dark:text-green-400 border-green-200 dark:border-green-900",
-      title: t("learn") || "Học",
-      desc: "Chế độ học thông minh tự động điều chỉnh câu hỏi trắc nghiệm và tự luận để giúp bạn ôn luyện hiệu quả nhất.",
-    },
-    {
-      Icon: FilePen,
-      color: "bg-orange-100 text-orange-600 dark:bg-orange-950/60 dark:text-orange-400 border-orange-200 dark:border-orange-900",
-      title: t("test") || "Kiểm tra",
-      desc: "Tạo các bài kiểm tra thử ngẫu nhiên để đánh giá năng lực thực tế của bạn trước khi bước vào kỳ thi chính thức.",
-    },
-    {
-      Icon: Puzzle,
-      color: "bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 border-purple-200 dark:border-purple-900",
-      title: t("match") || "Ghép thẻ",
-      desc: "Trò chơi ghép thẻ tính giờ kịch tính, vừa học vừa giải trí giúp bạn tăng tốc độ phản xạ và ghi nhớ sâu hơn.",
-    },
-  ];
-
-  const stats = [
-    { value: "90%", desc: "Học sinh sử dụng Quizlet cho biết họ đạt điểm cao hơn" },
-    { value: "60M+", desc: "Người học chủ động sử dụng phần mềm mỗi tháng" },
-    { value: "500M+", desc: "Bộ thẻ ghi nhớ đã được tạo lập và chia sẻ" },
-  ];
+  const scroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      const scrollAmount = clientWidth * 0.75;
+      scrollContainerRef.current.scrollTo({
+        left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   return (
-    <div className="space-y-24 select-none pb-24">
+    <div className="space-y-16 select-none pb-20 pt-8 max-w-6xl mx-auto px-4">
       
-      {/* Hero Section */}
-      <div className="relative overflow-hidden pt-12 md:pt-20">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-12 gap-8 items-center">
-          
-          {/* Left Info */}
-          <div className="md:col-span-7 space-y-6 text-center md:text-left z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-full font-bold text-xs border border-blue-100 dark:border-blue-900/50">
-              <Zap size={14} className="fill-current" />
-              <span>Phương pháp ghi nhớ hiện đại hiệu quả</span>
-            </div>
-            
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none text-foreground">
-              Giải pháp tối ưu để <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">ghi nhớ mọi thứ</span>
-            </h1>
-            
-            <p className="text-lg text-muted-foreground font-medium max-w-lg leading-relaxed mx-auto md:mx-0">
-              Học tốt hơn ở bất kỳ môn học nào cùng công cụ thẻ ghi nhớ và các chế độ luyện tập thông minh. 90% học sinh đạt kết quả cao hơn nhờ Quizlet.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start pt-2">
-              <button 
-                onClick={openSignIn}
-                className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 active:scale-[0.98]"
-              >
-                Đăng ký miễn phí
-              </button>
-              <button 
-                onClick={openSignIn}
-                className="px-8 py-3.5 bg-background hover:bg-muted border border-input font-extrabold text-sm rounded-xl transition-all text-foreground active:scale-[0.98]"
-              >
-                Học thử ngay
-              </button>
-            </div>
-          </div>
-
-          {/* Right SVG Graphic */}
-          <div className="md:col-span-5 flex justify-center items-center relative">
-            <div className="w-72 h-72 sm:w-96 sm:h-96 relative flex justify-center items-center">
-              {/* Decorative Blur Background */}
-              <div className="absolute w-64 h-64 bg-blue-500/10 dark:bg-blue-400/5 rounded-full filter blur-3xl -z-10" />
-              
-              {/* SVG Illustration resembling flying Flashcards */}
-              <svg className="w-full h-full text-blue-600 dark:text-blue-500" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Main Card (front) */}
-                <g filter="url(#shadow)">
-                  <rect x="100" y="80" width="200" height="130" rx="16" fill="currentColor" />
-                  <rect x="102" y="82" width="196" height="126" rx="14" fill="white" className="dark:fill-[#1e293b]" />
-                  <circle cx="140" cy="115" r="15" fill="currentColor" fillOpacity="0.1" />
-                  <line x1="170" y1="110" x2="260" y2="110" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.1" />
-                  <line x1="170" y1="122" x2="230" y2="122" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.1" />
-                  <line x1="125" y1="160" x2="275" y2="160" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                  <line x1="125" y1="172" x2="225" y2="172" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                </g>
-                
-                {/* Secondary Card (back skewed) */}
-                <g transform="rotate(-12, 220, 240)">
-                  <rect x="120" y="190" width="180" height="120" rx="14" fill="#6366f1" />
-                  <rect x="122" y="192" width="176" height="116" rx="12" fill="white" className="dark:fill-[#0f172a]" />
-                  <circle cx="150" cy="220" r="10" fill="#6366f1" fillOpacity="0.1" />
-                  <line x1="170" y1="220" x2="260" y2="220" stroke="#6366f1" strokeWidth="4" strokeLinecap="round" strokeOpacity="0.2" />
-                  <path d="M150 260l20 20 40-40" stroke="#6366f1" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                </g>
-
-                {/* Sparkling sparks */}
-                <path d="M70 150l10-5-10-5-5-10-5 10-10 5 10 5 5 10 5-10z" fill="#f59e0b" />
-                <path d="M330 110l6-3-6-3-3-6-3 6-6 3 6 3 3 6 3-6z" fill="#f59e0b" />
-                <path d="M90 280l8-4-8-4-4-8-4 8-8 4 8 4 4 8 4-8z" fill="#10b981" />
-                
-                <defs>
-                  <filter id="shadow" x="80" y="65" width="240" height="170" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-                    <feDropShadow dx="0" dy="12" stdDeviation="10" floodColor="#000000" floodOpacity="0.08" />
-                  </filter>
-                </defs>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Feature Section */}
-      <div className="max-w-6xl mx-auto px-4 space-y-12">
-        <div className="text-center space-y-3">
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
-            Luyện tập thông minh với các chế độ học
-          </h2>
-          <p className="text-muted-foreground font-medium max-w-xl mx-auto leading-relaxed">
-            Mỗi công cụ được thiết kế khoa học giúp bạn tối ưu hóa thời gian học tập, ghi nhớ nhanh và phản xạ chính xác.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feat, index) => {
-            const Icon = feat.Icon;
-            return (
-              <div 
-                key={index}
-                onClick={openSignIn}
-                className="flex flex-col justify-between p-6 bg-card border rounded-2xl hover:shadow-md hover:border-blue-400 dark:hover:border-blue-900 transition-all cursor-pointer group"
-              >
-                <div className="space-y-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border font-bold ${feat.color}`}>
-                    <Icon size={24} />
-                  </div>
-                  <h3 className="font-extrabold text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {feat.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                    {feat.desc}
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 mt-4 group-hover:translate-x-1 transition-transform">
-                  <span>Trải nghiệm ngay</span>
-                  <ChevronRight size={14} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Statistics Section */}
-      <div className="bg-muted/40 border-y py-16">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-8 text-center">
-          {stats.map((stat, idx) => (
-            <div key={idx} className="space-y-2">
-              <div className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-                {stat.value}
-              </div>
-              <p className="text-sm font-semibold text-muted-foreground max-w-xs mx-auto leading-normal">
-                {stat.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Why Choose Quizlet */}
-      <div className="max-w-4xl mx-auto px-4 space-y-10">
-        <div className="text-center space-y-3">
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-            Lý do hàng triệu học sinh chọn chúng tôi
-          </h2>
-        </div>
+      {/* Banner Section */}
+      <div className="text-center space-y-6 max-w-2xl mx-auto pt-6">
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-[#1a1b1d] dark:text-white leading-tight">
+          Bạn muốn học như thế nào?
+        </h1>
         
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="flex gap-3 items-start">
-            <CheckCircle2 className="text-blue-600 shrink-0 mt-0.5" size={20} />
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-sm">Hiệu quả đã được chứng minh</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed font-medium">Các phương pháp lặp lại ngắt quãng (spaced repetition) và truy hồi chủ động giúp củng cố liên kết thần kinh, tăng tốc trí nhớ dài hạn.</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <CheckCircle2 className="text-blue-600 shrink-0 mt-0.5" size={20} />
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-sm">Học tập đa nền tảng linh hoạt</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed font-medium">Bắt đầu học trên điện thoại khi đi xe buýt, tiếp tục ôn luyện trên máy tính tại nhà. Đồng bộ hóa dữ liệu mọi lúc mọi nơi.</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <CheckCircle2 className="text-blue-600 shrink-0 mt-0.5" size={20} />
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-sm">Cộng đồng học liệu khổng lồ</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed font-medium">Dễ dàng chia sẻ học phần với bạn bè cùng lớp, cùng học tập, cùng tiến bộ và thi đua thứ hạng điểm số.</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 items-start">
-            <CheckCircle2 className="text-blue-600 shrink-0 mt-0.5" size={20} />
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-sm">Tự do tùy biến học phần</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed font-medium">Tự thiết lập, nhập liệu nhanh các thuật ngữ học thuật hoặc định nghĩa theo ý thích. Tải tệp tin Excel, CSV lên để tạo học phần tức thì.</p>
-            </div>
-          </div>
+        <p className="text-base sm:text-lg text-muted-foreground font-medium max-w-xl mx-auto leading-relaxed">
+          Nắm vững kiến thức đang học với thẻ ghi nhớ tương tác, bài kiểm tra thử và hoạt động học tập của Quizlet.
+        </p>
+        
+        <div className="flex flex-col items-center gap-4 pt-2">
+          <button 
+            onClick={openSignIn}
+            className="px-10 py-4 bg-[#4257b2] hover:bg-[#3b4c9b] text-white font-extrabold text-base rounded-full transition-all shadow-md active:scale-[0.98] outline-none"
+          >
+            Đăng ký miễn phí
+          </button>
+          
+          <button 
+            onClick={openSignIn}
+            className="text-sm font-bold text-[#4257b2] dark:text-[#60a5fa] hover:underline transition-all outline-none"
+          >
+            Tôi là giáo viên
+          </button>
         </div>
       </div>
 
-      {/* Call to Action Footer */}
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-700 to-indigo-600 p-8 sm:p-12 text-center text-white shadow-xl">
-          {/* Decorative shapes */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full filter blur-xl transform translate-x-12 -translate-y-12" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/20 rounded-full filter blur-lg transform -translate-x-6 translate-y-6" />
+      {/* 4 Card Features Section */}
+      <div className="relative group">
+        
+        {/* Left Arrow Button */}
+        <button 
+          onClick={openSignIn}
+          className="absolute -left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full border bg-background text-foreground shadow-md hover:bg-accent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 outline-none hidden md:flex"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
 
-          <div className="relative z-10 space-y-6 max-w-xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-              Sẵn sàng bứt phá điểm số học tập của bạn?
-            </h2>
-            <p className="text-sm text-blue-100 font-medium">
-              Tham gia cùng hàng triệu học sinh và giáo viên trên toàn thế giới để biến việc học trở nên dễ dàng và thú vị hơn bao giờ hết.
-            </p>
-            <div className="pt-2">
-              <button 
-                onClick={openSignIn}
-                className="px-8 py-3.5 bg-white text-blue-600 hover:bg-blue-50 font-extrabold text-sm rounded-xl transition-all shadow-md active:scale-[0.98]"
-              >
-                Bắt đầu học ngay bây giờ
-              </button>
+        {/* Scroll Container */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto gap-6 pb-6 scrollbar-none snap-x snap-mandatory touch-pan-x"
+        >
+          
+          {/* Card 1: Học */}
+          <div 
+            onClick={openSignIn}
+            className="min-w-[280px] sm:min-w-[290px] md:min-w-0 md:flex-1 h-[420px] bg-card border rounded-3xl overflow-hidden hover:shadow-lg transition-all cursor-pointer snap-start flex flex-col group/card"
+          >
+            {/* Header portion */}
+            <div className="bg-[#bce6fc] h-32 flex items-center justify-center relative select-none shrink-0">
+              <span className="font-extrabold text-2xl text-[#1a1b1d]">Học</span>
+            </div>
+            {/* Simulation portion */}
+            <div className="flex-1 p-6 bg-muted/20 dark:bg-muted/5 flex flex-col justify-between">
+              <div className="border rounded-2xl p-5 bg-background shadow-sm space-y-4 min-h-[160px] flex flex-col justify-center relative">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest absolute top-3 left-4">Thuật ngữ</span>
+                <div className="text-xl font-bold text-center text-[#1a1b1d] dark:text-white leading-normal pt-2">
+                  la pintura
+                </div>
+              </div>
+              <div className="w-full">
+                <div className="w-full bg-background border rounded-xl px-4 py-3 text-xs font-semibold text-muted-foreground/60 shadow-inner flex items-center">
+                  Nhập đáp án
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Card 2: Thẻ ghi nhớ */}
+          <div 
+            onClick={openSignIn}
+            className="min-w-[280px] sm:min-w-[290px] md:min-w-0 md:flex-1 h-[420px] bg-card border rounded-3xl overflow-hidden hover:shadow-lg transition-all cursor-pointer snap-start flex flex-col group/card"
+          >
+            {/* Header portion */}
+            <div className="bg-[#2e3895] h-32 flex items-center justify-center relative select-none shrink-0">
+              <span className="font-extrabold text-2xl text-white">Thẻ ghi nhớ</span>
+            </div>
+            {/* Simulation portion */}
+            <div className="flex-1 p-6 bg-muted/20 dark:bg-muted/5 flex flex-col justify-center">
+              <div className="border rounded-2xl p-5 bg-background shadow-md min-h-[200px] flex flex-col justify-between items-center relative rotate-[-2deg] transition-transform group-hover/card:rotate-0">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest absolute top-3 left-4">Thẻ lật</span>
+                
+                <div className="flex-1 flex flex-col justify-center items-center gap-4 w-full pt-4">
+                  {/* Heart SVG */}
+                  <svg className="w-16 h-16 text-rose-500" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M32 16c-3-5-9-5-12 0-4 5-4 13 0 18l12 14 12-14c4-5 4-13 0-18-3-5-9-5-12 0z" fill="currentColor" />
+                    <path d="M28 8v8M36 6v10" stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" />
+                    <path d="M32 16h4M28 20h4" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                  
+                  <span className="font-bold text-base text-center text-[#1a1b1d] dark:text-white leading-normal">
+                    tĩnh mạch chủ trên
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Kiểm tra */}
+          <div 
+            onClick={openSignIn}
+            className="min-w-[280px] sm:min-w-[290px] md:min-w-0 md:flex-1 h-[420px] bg-card border rounded-3xl overflow-hidden hover:shadow-lg transition-all cursor-pointer snap-start flex flex-col group/card"
+          >
+            {/* Header portion */}
+            <div className="bg-[#ffcd1f] h-32 flex items-center justify-center relative select-none shrink-0">
+              <span className="font-extrabold text-2xl text-[#1a1b1d]">Kiểm tra</span>
+            </div>
+            {/* Simulation portion */}
+            <div className="flex-1 p-6 bg-muted/20 dark:bg-muted/5 flex flex-col justify-between">
+              <div className="text-sm font-bold text-[#1a1b1d] dark:text-white flex justify-between items-center shrink-0">
+                <span>Thời gian: 6 phút</span>
+              </div>
+              
+              <div className="flex-1 flex items-center justify-center py-2">
+                {/* Dial progress percentage 75% */}
+                <div className="w-24 h-24 rounded-full border-[8px] border-[#10b981] flex items-center justify-center relative">
+                  <div className="absolute inset-0 rounded-full border-[8px] border-slate-100 dark:border-slate-800 -m-[8px] -z-10" />
+                  <span className="font-black text-xl text-[#1a1b1d] dark:text-white">75%</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400 flex items-center justify-center text-xs font-bold">✓</div>
+                  <span className="text-sm font-bold text-muted-foreground">Đúng: 9</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xs font-bold">✕</div>
+                  <span className="text-sm font-bold text-muted-foreground">Sai: 3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Ghép thẻ */}
+          <div 
+            onClick={openSignIn}
+            className="min-w-[280px] sm:min-w-[290px] md:min-w-0 md:flex-1 h-[420px] bg-card border rounded-3xl overflow-hidden hover:shadow-lg transition-all cursor-pointer snap-start flex flex-col group/card"
+          >
+            {/* Header portion */}
+            <div className="bg-[#ffdbd0] h-32 flex items-center justify-center relative select-none shrink-0">
+              <span className="font-extrabold text-2xl text-[#1a1b1d]">Ghép thẻ</span>
+            </div>
+            {/* Simulation portion */}
+            <div className="flex-1 p-5 bg-muted/20 dark:bg-muted/5 flex flex-col justify-center">
+              <div className="grid grid-cols-2 gap-3.5 w-full">
+                {/* Lung text box */}
+                <div className="border-2 rounded-xl p-3 bg-background shadow-sm text-center font-bold text-xs flex items-center justify-center min-h-[56px] text-[#1a1b1d] dark:text-white">
+                  phổi
+                </div>
+                
+                {/* Lungs SVG box */}
+                <div className="border-2 rounded-xl p-2 bg-background shadow-sm flex items-center justify-center min-h-[56px] text-rose-400">
+                  <svg className="w-10 h-10" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 16c-4 0-8 3-8 9v12c0 6 4 9 8 9h2V16h-2z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="2" />
+                    <path d="M44 16c4 0 8 3 8 9v12c0 6-4 9-8 9h-2V16h2z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="2" />
+                    <path d="M32 8v36" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    <path d="M24 16h16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                
+                {/* Active correct connection box */}
+                <div className="col-span-2 border-2 border-green-500 bg-green-50/70 dark:bg-green-950/20 rounded-xl p-3 shadow-sm flex items-center justify-between min-h-[56px]">
+                  <span className="font-bold text-xs text-green-700 dark:text-green-400">Đã ghép đúng</span>
+                  <div className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center">
+                    <Check className="w-3.5 h-3.5 stroke-[3px]" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+        {/* Right Arrow Button */}
+        <button 
+          onClick={openSignIn}
+          className="absolute -right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full border bg-background text-foreground shadow-md hover:bg-accent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 outline-none hidden md:flex"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
       </div>
 
     </div>
