@@ -139,6 +139,27 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }
   }, [isCompleted, sessionCards.length, id]);
 
+  // Bắt phím bất kỳ để tiếp tục trong chế độ tự luận khi trả lời sai hoặc bỏ qua
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (activeMode === "written" && userAnswer !== undefined) {
+        const card = sessionCards[currentIndex];
+        if (card) {
+          const isCorrect = userAnswer.trim().toLowerCase() === card.definition.trim().toLowerCase();
+          if (!isCorrect) {
+            e.preventDefault();
+            handleContinue();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, [activeMode, userAnswer, currentIndex, sessionCards]);
+
   const saveConfig = (newConfig: LearnConfig) => {
     setConfig(newConfig);
     if (typeof window !== "undefined") {
@@ -195,6 +216,16 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }, 1200);
   };
 
+  function handleContinue() {
+    setUserAnswer(undefined);
+    setWrittenInput("");
+    if (currentIndex + 1 >= sessionCards.length) {
+      setIsCompleted(true);
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  }
+
   const handleWrittenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (userAnswer || !writtenInput.trim()) return;
@@ -208,17 +239,20 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
     if (isCorrect) {
       setCorrectCount((prev) => prev + 1);
+      setTimeout(() => {
+        handleContinue();
+      }, 1000);
     }
+  };
 
-    setTimeout(() => {
-      setUserAnswer(undefined);
-      setWrittenInput("");
-      if (currentIndex + 1 >= sessionCards.length) {
-        setIsCompleted(true);
-      } else {
-        setCurrentIndex((prev) => prev + 1);
-      }
-    }, 1500);
+  const handleDontKnow = () => {
+    if (userAnswer) return;
+    setUserAnswer("Đã bỏ qua");
+  };
+
+  const handleOverrideCorrect = () => {
+    setCorrectCount((prev) => prev + 1);
+    handleContinue();
   };
 
   const handleFlashcardFeedback = (know: boolean) => {
@@ -273,23 +307,17 @@ const LearnMode = ({ session }: { session: Session | null }) => {
             )}
 
             {activeMode === "written" && (
-              <form onSubmit={handleWrittenSubmit} className="space-y-4">
-                <WrittenCard
-                  term={config.answerWith === "term" ? currentCard.definition : currentCard.term}
-                  definition={config.answerWith === "term" ? currentCard.term : currentCard.definition}
-                  userAnswer={userAnswer}
-                  value={writtenInput}
-                  onChange={(e) => setWrittenInput(e.target.value)}
-                />
-                {!userAnswer && (
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl py-3 active:scale-[0.98] transition-all"
-                  >
-                    Trả lời
-                  </Button>
-                )}
-              </form>
+              <WrittenCard
+                term={config.answerWith === "term" ? currentCard.definition : currentCard.term}
+                definition={config.answerWith === "term" ? currentCard.term : currentCard.definition}
+                userAnswer={userAnswer}
+                value={writtenInput}
+                onChange={(e) => setWrittenInput(e.target.value)}
+                onDontKnow={handleDontKnow}
+                onSubmit={handleWrittenSubmit}
+                onOverrideCorrect={handleOverrideCorrect}
+                onContinue={handleContinue}
+              />
             )}
 
             {activeMode === "flashcards" && (
@@ -302,7 +330,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
                     <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                       {isFlipped ? "Định nghĩa" : "Thuật ngữ"}
                     </div>
-                    <div className="text-2xl sm:text-3xl whitespace-pre-wrap font-extrabold leading-relaxed px-4 max-h-[220px] overflow-y-auto">
+                    <div className="text-2xl sm:text-3xl whitespace-pre-wrap font-sans leading-relaxed px-4 max-h-[220px] overflow-y-auto">
                       {isFlipped 
                         ? (config.answerWith === "term" ? currentCard.term : currentCard.definition) 
                         : (config.answerWith === "term" ? currentCard.definition : currentCard.term)
