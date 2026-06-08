@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-import { useSignInDialogContext } from "~/contexts/sign-in-dialog-context";
 import { useTranslation } from "~/contexts/i18n-context";
 
 export default function Hero() {
   const { t } = useTranslation();
-  const { onOpenChange } = useSignInDialogContext();
+  const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const openSignIn = () => {
-    onOpenChange(true);
+    router.push("/sign-up");
   };
 
   const scroll = (direction: "left" | "right") => {
