@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { GeistMono } from "geist/font/mono";
-import { Inter } from "next/font/google";
+import { Outfit } from "next/font/google";
 
 import { cn } from "@acme/ui";
 import { ThemeProvider } from "@acme/ui/theme";
@@ -26,8 +26,8 @@ import SignInDialogProvider from "~/contexts/sign-in-dialog-context";
 import { LanguageProvider } from "~/contexts/i18n-context";
 import { env } from "~/env";
 
-const inter = Inter({
-  subsets: ["vietnamese", "latin"],
+const outfit = Outfit({
+  subsets: ["latin", "latin-ext"],
   variable: "--font-sans",
 });
 
@@ -62,7 +62,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body
         className={cn(
           "min-h-screen bg-background font-sans text-foreground antialiased",
-          inter.variable,
+          outfit.variable,
           GeistMono.variable,
         )}
       >
