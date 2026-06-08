@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { auth } from "@acme/auth";
 
 import FlashcardsGame from "~/components/flashcards-mode/flashcards-game";
+import StudyModeHeader from "~/components/study-set/study-mode-header";
 import FlashcardsModeProvider from "~/contexts/flashcards-mode-context";
 import { api, HydrateClient } from "~/trpc/server";
 
@@ -29,7 +30,8 @@ export default async function FlashcardsMode({
   return (
     <HydrateClient>
       <FlashcardsModeProvider id={id}>
-        <div className="m-auto max-w-5xl">
+        <div className="m-auto max-w-5xl px-4">
+          <StudyModeHeader currentMode="flashcards" studySetId={id} />
           <FlashcardsGame fullscreen session={session} />
         </div>
       </FlashcardsModeProvider>

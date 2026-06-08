@@ -28,11 +28,11 @@ const MultipleChoiceCard = forwardRef<
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-1 flex-col sm:mb-12 sm:flex-row">
-            <div className={`flex-1 pb-4`}>
+            <div className="flex-1 pb-4">
               <span className="mb-6 block font-semibold text-muted-foreground">
-                Term
+                Thuật ngữ (Term)
               </span>
-              <span className="text-2xl">{term}</span>
+              <div className="text-2xl whitespace-pre-wrap leading-relaxed">{term}</div>
             </div>
           </div>
           {/* <div>

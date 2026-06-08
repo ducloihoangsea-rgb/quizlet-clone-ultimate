@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import TestMode from "~/components/test-mode/test-mode";
+import StudyModeHeader from "~/components/study-set/study-mode-header";
 import { api, HydrateClient } from "~/trpc/server";
 
 interface TestModeProps {
@@ -26,7 +27,8 @@ export default async function Test({
 
   return (
     <HydrateClient>
-      <div className="m-auto max-w-3xl">
+      <div className="m-auto max-w-3xl px-4">
+        <StudyModeHeader currentMode="test" studySetId={id} />
         <TestMode />
       </div>
     </HydrateClient>

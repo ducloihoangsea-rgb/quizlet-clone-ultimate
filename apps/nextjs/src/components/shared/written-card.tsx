@@ -21,11 +21,11 @@ const WrittenCard = forwardRef<HTMLInputElement, WrittenCardProps>(
       <Card>
         <CardContent className="flex min-h-[30rem] flex-col p-6">
           <div className="flex flex-1 flex-col sm:mb-12 sm:flex-row">
-            <div className={`flex-1 pb-4`}>
+            <div className="flex-1 pb-4">
               <span className="mb-6 block font-bold text-muted-foreground">
-                Term
+                Thuật ngữ (Term)
               </span>
-              <span className="text-2xl">{term}</span>
+              <div className="text-2xl whitespace-pre-wrap leading-relaxed">{term}</div>
             </div>
           </div>
           <div>

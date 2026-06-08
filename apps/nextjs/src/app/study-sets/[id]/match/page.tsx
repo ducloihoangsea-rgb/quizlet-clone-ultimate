@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import MatchGame from "~/components/match-mode/match-game";
+import StudyModeHeader from "~/components/study-set/study-mode-header";
 import MatchModeProvider from "~/contexts/match-mode-context";
 import { api, HydrateClient } from "~/trpc/server";
 
@@ -28,7 +29,10 @@ export default async function MatchMode({
   return (
     <HydrateClient>
       <MatchModeProvider id={id}>
-        <MatchGame id={id} />
+        <div className="m-auto max-w-5xl px-4">
+          <StudyModeHeader currentMode="match" studySetId={id} />
+          <MatchGame id={id} />
+        </div>
       </MatchModeProvider>
     </HydrateClient>
   );

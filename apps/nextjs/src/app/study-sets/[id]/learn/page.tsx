@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { auth } from "@acme/auth";
 
 import LearnMode from "~/components/learn-mode/learn-mode";
+import StudyModeHeader from "~/components/study-set/study-mode-header";
 import { api, HydrateClient } from "~/trpc/server";
 
 interface LearnModeProps {
@@ -29,7 +30,8 @@ export default async function Learn({
 
   return (
     <HydrateClient>
-      <div className="m-auto max-w-3xl">
+      <div className="m-auto max-w-3xl px-4">
+        <StudyModeHeader currentMode="learn" studySetId={id} />
         <LearnMode session={session} />
       </div>
     </HydrateClient>

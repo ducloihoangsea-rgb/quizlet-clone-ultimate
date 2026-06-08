@@ -78,6 +78,19 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
   const [active, setActive] = useState(0);
   const [isImportOpen, setIsImportOpen] = useState(false);
 
+  const autoFormatQuestion = (text: string) => {
+    if (!text) return text;
+    // Chèn xuống dòng trước các đáp án A., B., C., D. hoặc A), B), C), D) (bất kể hoa/thường)
+    // nếu trước đó chưa có dấu xuống dòng
+    let formatted = text.replace(/\s+([A-Da-d1-4][\.\)])\s*/g, '\n$1 ');
+    // Chuẩn hóa và làm sạch khoảng trắng
+    return formatted
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .join('\n');
+  };
+
   const handleImport = (
     importedCards: { term: string; definition: string }[],
     mode: "replace" | "append",
@@ -85,8 +98,8 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
     const currentCards = form.getValues("flashcards") || [];
 
     const formattedNewCards = importedCards.map((card, idx) => ({
-      term: card.term,
-      definition: card.definition,
+      term: autoFormatQuestion(card.term),
+      definition: autoFormatQuestion(card.definition),
       position: mode === "replace" ? idx : currentCards.length + idx,
     }));
 
@@ -126,6 +139,8 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
   const onSubmit = (values: StudySetValues) => {
     const flashcards = values.flashcards.map((flashcard, index) => ({
       ...flashcard,
+      term: autoFormatQuestion(flashcard.term),
+      definition: autoFormatQuestion(flashcard.definition),
       position: index,
     }));
 

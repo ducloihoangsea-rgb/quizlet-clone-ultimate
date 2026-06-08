@@ -66,8 +66,10 @@ const FlipCardContent = ({
             </Button>
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-center">
-          <span className="select-none text-3xl">{content}</span>
+        <div className="flex flex-1 items-center justify-center w-full h-full overflow-hidden">
+          <div className="select-none text-2xl sm:text-3xl whitespace-pre-wrap text-center max-w-full overflow-y-auto px-4 max-h-[180px] sm:max-h-[280px] leading-relaxed">
+            {content}
+          </div>
         </div>
       </div>
     </div>
