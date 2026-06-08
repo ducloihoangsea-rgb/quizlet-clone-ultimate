@@ -16,8 +16,8 @@ export default function Hero() {
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      const scrollAmount = clientWidth * 0.75;
+      const { scrollLeft } = scrollContainerRef.current;
+      const scrollAmount = 320; // Cuộn ngang khoảng 1 card và gap
       scrollContainerRef.current.scrollTo({
         left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
         behavior: "smooth",
@@ -60,7 +60,7 @@ export default function Hero() {
         
         {/* Left Arrow Button */}
         <button 
-          onClick={openSignIn}
+          onClick={() => scroll("left")}
           className="absolute -left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full border bg-background text-foreground shadow-md hover:bg-accent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 outline-none hidden md:flex"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -205,7 +205,7 @@ export default function Hero() {
 
         {/* Right Arrow Button */}
         <button 
-          onClick={openSignIn}
+          onClick={() => scroll("right")}
           className="absolute -right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full border bg-background text-foreground shadow-md hover:bg-accent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 outline-none hidden md:flex"
         >
           <ChevronRight className="w-5 h-5" />
