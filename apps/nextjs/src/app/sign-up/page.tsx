@@ -27,10 +27,7 @@ export default async function SignUpPage({
     await signIn("github");
   };
 
-  const handleSignInFacebook = async () => {
-    "use server";
-    await signIn("facebook");
-  };
+
 
   const handleSignInCredentials = async (formData: FormData) => {
     "use server";
@@ -53,7 +50,7 @@ export default async function SignUpPage({
       initialMode={initialMode}
       onSignInGoogle={handleSignInGoogle}
       onSignInGithub={handleSignInGithub}
-      onSignInFacebook={handleSignInFacebook}
+
       onSignInCredentials={handleSignInCredentials}
       onRegister={registerUserAction}
     />
