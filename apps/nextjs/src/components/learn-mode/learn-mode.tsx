@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { RotateCcw, Undo2, Star } from "lucide-react";
+import { RotateCcw, Undo2, Star, FileText, RotateCw } from "lucide-react";
 
 import type { Session } from "@acme/auth";
 import { Separator } from "@acme/ui/separator";
@@ -18,6 +18,7 @@ import MultipleChoiceCard from "../shared/multiple-choice-card";
 import WrittenCard from "../shared/written-card";
 import LearnOptionsDialog, { type LearnConfig } from "./learn-options-dialog";
 import { useTranslation } from "~/contexts/i18n-context";
+import TestSettingsDialog from "../shared/test-settings-dialog";
 
 const defaultConfig: LearnConfig = {
   shuffle: false,
@@ -53,32 +54,44 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }
   );
 
-  // Load config from localStorage
-  const [config, setConfig] = useState<LearnConfig>(() => {
+  const [studySet] = api.studySet.byId.useSuspenseQuery({ id });
+
+  const [config, setConfig] = useState<LearnConfig>(defaultConfig);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(`quizlet_learn_config_${id}`);
       if (saved) {
         try {
-          return JSON.parse(saved) as LearnConfig;
+          setConfig(JSON.parse(saved) as LearnConfig);
         } catch (e) {
-          return defaultConfig;
+          // ignore
         }
       }
     }
-    return defaultConfig;
-  });
+  }, [id]);
 
   const [sessionCards, setSessionCards] = useState<typeof flashcards>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [userAnswer, setUserAnswer] = useState<string | undefined>();
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isTestSettingsOpen, setIsTestSettingsOpen] = useState(false);
 
   // Written Mode state
   const [writtenInput, setWrittenInput] = useState("");
 
   // Flashcards Mode state
   const [isFlipped, setIsFlipped] = useState(false);
+
+  const handleResetProgress = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`study_progress_learned_${id}`);
+    }
+    restart();
+  };
 
   // Initialize session cards
   const restart = () => {
@@ -281,6 +294,14 @@ const LearnMode = ({ session }: { session: Session | null }) => {
       ? "written" 
       : "flashcards";
 
+  if (!isMounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px] text-muted-foreground font-bold font-sans">
+        Đang tải chế độ học...
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-6 md:grid-cols-4 select-none pb-12">
       {/* Main column */}
@@ -363,25 +384,84 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
         {isCompleted && (
           <>
-            <div className="mb-6 text-2xl font-extrabold tracking-tight">Chúc mừng! Bạn đã hoàn thành lượt học này.</div>
-            <GameResult
-              hard={sessionCards.length - correctCount}
-              cardCount={sessionCards.length}
-              firstButton={{
-                text: "Học lại vòng mới",
-                description: "Khởi động lại vòng học với bộ thẻ này.",
-                Icon: <RotateCcw size={20} />,
-                callback: restart,
-              }}
-              secondButton={{
-                text: "Quay lại học phần",
-                description: "Trở lại trang chi tiết học phần.",
-                Icon: <Undo2 size={20} />,
-                callback: backToStudySet,
-              }}
-            />
+            <div className="mb-6 text-center space-y-2 font-sans">
+              <div className="text-4xl">🎉</div>
+              <div className="text-3xl font-extrabold tracking-tight text-foreground">
+                Chúc mừng! Bạn đã hoàn thành lượt học này.
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Bạn đã đi qua toàn bộ các thẻ ghi nhớ. Tiếp theo bạn muốn làm gì?
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3 max-w-2xl mx-auto mb-8 font-sans">
+              {/* Làm bài kiểm tra */}
+              <button
+                onClick={() => setIsTestSettingsOpen(true)}
+                className="flex flex-col items-center justify-center p-6 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/40 border-2 border-blue-200 dark:border-blue-900 rounded-2xl shadow-sm hover:shadow transition-all active:scale-[0.98] text-center space-y-3 group"
+              >
+                <div className="bg-blue-600 text-white p-3 rounded-xl group-hover:scale-110 transition-all">
+                  <FileText size={24} />
+                </div>
+                <div className="space-y-1">
+                  <span className="font-extrabold text-base text-blue-700 dark:text-blue-400 block">
+                    Làm bài kiểm tra
+                  </span>
+                  <span className="text-xs text-muted-foreground block leading-normal">
+                    Đánh giá kiến thức với các dạng câu hỏi đa dạng
+                  </span>
+                </div>
+              </button>
+
+              {/* Ôn tập thêm */}
+              <button
+                onClick={restart}
+                className="flex flex-col items-center justify-center p-6 bg-green-50 hover:bg-green-100 dark:bg-green-950/40 dark:hover:bg-green-900/40 border-2 border-green-200 dark:border-green-900 rounded-2xl shadow-sm hover:shadow transition-all active:scale-[0.98] text-center space-y-3 group"
+              >
+                <div className="bg-green-600 text-white p-3 rounded-xl group-hover:scale-110 transition-all">
+                  <RotateCw size={24} />
+                </div>
+                <div className="space-y-1">
+                  <span className="font-extrabold text-base text-green-700 dark:text-green-400 block">
+                    Ôn tập thêm
+                  </span>
+                  <span className="text-xs text-muted-foreground block leading-normal">
+                    Tiếp tục ôn luyện lại bộ thẻ này một lần nữa
+                  </span>
+                </div>
+              </button>
+
+              {/* Học lại từ đầu */}
+              <button
+                onClick={handleResetProgress}
+                className="flex flex-col items-center justify-center p-6 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 dark:hover:bg-orange-900/40 border-2 border-orange-200 dark:border-orange-900 rounded-2xl shadow-sm hover:shadow transition-all active:scale-[0.98] text-center space-y-3 group"
+              >
+                <div className="bg-orange-600 text-white p-3 rounded-xl group-hover:scale-110 transition-all">
+                  <RotateCcw size={24} />
+                </div>
+                <div className="space-y-1">
+                  <span className="font-extrabold text-base text-orange-700 dark:text-orange-400 block">
+                    Học lại từ đầu
+                  </span>
+                  <span className="text-xs text-muted-foreground block leading-normal">
+                    Xóa sạch tiến độ học tập và bắt đầu lại từ 0%
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            <div className="flex justify-center mb-8 font-sans">
+              <Button
+                variant="outline"
+                onClick={backToStudySet}
+                className="gap-2 font-bold rounded-xl active:scale-[0.98] transition-all"
+              >
+                <Undo2 size={16} /> Quay lại học phần
+              </Button>
+            </div>
+
             <Separator className="my-8" />
-            <div>
+            <div className="font-sans">
               <span className="mb-4 inline-block text-xl font-bold tracking-tight">
                 Các thuật ngữ đã học trong vòng này ({sessionCards.length})
               </span>
@@ -395,6 +475,14 @@ const LearnMode = ({ session }: { session: Session | null }) => {
                 ))}
               </div>
             </div>
+
+            <TestSettingsDialog
+              open={isTestSettingsOpen}
+              onOpenChange={setIsTestSettingsOpen}
+              studySetId={id}
+              studySetTitle={studySet.title}
+              totalCards={studySet.flashcards.length}
+            />
           </>
         )}
       </div>

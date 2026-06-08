@@ -308,43 +308,99 @@ export const studySetRouter = {
       }));
     }),
   testCards: publicProcedure
-    .input(z.object({ id: z.string() }))
+    .input(
+      z.object({
+        id: z.string(),
+        limit: z.number().optional(),
+        answerWith: z.enum(["term", "definition", "both"]).optional(),
+        types: z.array(z.string()).optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const flashcards = await getStudySetFlashcardsQuery(ctx.db, input.id);
+      if (flashcards.length === 0) {
+        return {
+          trueOrFalse: [],
+          written: [],
+          multipleChoice: [],
+        };
+      }
 
-      const copy = [...flashcards];
+      // 1. Trộn ngẫu nhiên danh sách thẻ
+      let pool = [...flashcards].sort(() => 0.5 - Math.random());
 
-      // multipleChoice should be 10% and minimum 1
-      // write should be 10% and minimum 1
-      // tureFalse should be the rest
-      // f.e we have 4 cards, then multipleChoice - 1, write - 1, trueFalse - 2
+      // 2. Giới hạn số lượng câu hỏi theo limit (nếu có)
+      const limit =
+        input.limit && input.limit > 0 && input.limit <= pool.length
+          ? input.limit
+          : pool.length;
+      let selectedCards = pool.slice(0, limit);
 
-      const tenPercent = Math.floor(0.1 * flashcards.length);
-      const count = tenPercent < 1 ? 1 : tenPercent;
+      // 3. Xử lý answerWith (hoán đổi term và definition nếu trả lời bằng term)
+      selectedCards = selectedCards.map((card) => {
+        let displayTerm = card.term;
+        let displayDefinition = card.definition;
 
-      // RANDOMIZING QUESTIONS
-      //multipleChoice
-      const multipleChoiceInitial = copy.splice(0, count);
-      const multipleChoice = generateMultipleChoiceCards(
-        multipleChoiceInitial,
-        flashcards,
-      );
+        if (input.answerWith === "term") {
+          displayTerm = card.definition;
+          displayDefinition = card.term;
+        } else if (input.answerWith === "both") {
+          // Ngẫu nhiên 50% hoán đổi
+          if (Math.random() < 0.5) {
+            displayTerm = card.definition;
+            displayDefinition = card.term;
+          }
+        }
 
-      // written
-      const written = copy.splice(0, count);
-
-      // trueFalse
-      const trueOrFalse = copy.map((card) => {
-        const falseAnswer =
-          flashcards
-            .filter((el) => el.id !== card.id)
-            .at(Math.floor(Math.random() * (flashcards.length - 1)))
-            ?.definition ?? card.definition;
-
-        const answer = Math.random() < 0.5 ? falseAnswer : card.definition;
-
-        return { ...card, answer };
+        return {
+          ...card,
+          term: displayTerm,
+          definition: displayDefinition,
+        };
       });
+
+      // 4. Xác định các loại câu hỏi được chọn
+      // Mặc định nếu types không được cung cấp hoặc rỗng, ta sử dụng cả 3 loại
+      const activeTypes =
+        input.types && input.types.length > 0
+          ? input.types
+          : ["mc", "written", "trueFalse"];
+
+      const typeCount = activeTypes.length;
+      const cardsPerType = Math.floor(selectedCards.length / typeCount);
+      let copy = [...selectedCards];
+
+      let multipleChoice: any[] = [];
+      let written: any[] = [];
+      let trueOrFalse: any[] = [];
+
+      if (activeTypes.includes("mc")) {
+        const isLast = activeTypes.indexOf("mc") === typeCount - 1;
+        const mcCount = isLast ? copy.length : cardsPerType;
+        const mcCards = copy.splice(0, mcCount);
+        multipleChoice = generateMultipleChoiceCards(mcCards, flashcards);
+      }
+
+      if (activeTypes.includes("written")) {
+        const isLast = activeTypes.indexOf("written") === typeCount - 1;
+        const writeCount = isLast ? copy.length : cardsPerType;
+        written = copy.splice(0, writeCount);
+      }
+
+      if (activeTypes.includes("trueFalse")) {
+        const tfCards = copy; // Lấy toàn bộ phần còn lại
+        trueOrFalse = tfCards.map((card) => {
+          const falseAnswer =
+            flashcards
+              .filter((el) => el.id !== card.id)
+              .at(Math.floor(Math.random() * (flashcards.length - 1)))
+              ?.definition ?? card.definition;
+
+          const answer = Math.random() < 0.5 ? falseAnswer : card.definition;
+
+          return { ...card, answer };
+        });
+      }
 
       return {
         trueOrFalse,

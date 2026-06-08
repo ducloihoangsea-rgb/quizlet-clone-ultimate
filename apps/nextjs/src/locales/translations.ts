@@ -127,7 +127,14 @@ export const translations = {
     dontHaveAccount: "Bạn chưa có tài khoản? Đăng ký",
     day: "Ngày",
     month: "Tháng",
-    year: "Năm"
+    year: "Năm",
+    trackProgress: "Theo dõi tiến độ",
+    learning: "Đang học",
+    known: "Đã biết",
+    clickToFlip: "Nhấp vào thẻ để lật",
+    undoAction: "Hoàn tác",
+    showHint: "Hiển thị gợi ý",
+    fullscreen: "Toàn màn hình"
   },
   en: {
     home: "Home",
@@ -257,7 +264,14 @@ export const translations = {
     dontHaveAccount: "Don't have an account? Sign up",
     day: "Day",
     month: "Month",
-    year: "Year"
+    year: "Year",
+    trackProgress: "Track progress",
+    learning: "Still learning",
+    known: "Know",
+    clickToFlip: "Click the card to flip",
+    undoAction: "Undo",
+    showHint: "Show hint",
+    fullscreen: "Fullscreen"
   },
   zh: {
     home: "首页",
@@ -387,6 +401,13 @@ export const translations = {
     dontHaveAccount: "没有账号？注册",
     day: "日",
     month: "月",
-    year: "年"
+    year: "年",
+    trackProgress: "跟踪进度",
+    learning: "正在学习",
+    known: "已掌握",
+    clickToFlip: "点击卡片翻转",
+    undoAction: "撤销",
+    showHint: "显示提示",
+    fullscreen: "全屏"
   }
 };

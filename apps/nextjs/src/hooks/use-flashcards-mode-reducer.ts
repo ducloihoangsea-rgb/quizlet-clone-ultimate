@@ -13,6 +13,11 @@ export const flashcardsInitial = {
   sorting: false,
   starredOnly: false,
   know: false,
+  trackProgress: false,
+  learningCount: 0,
+  knownCount: 0,
+  // Stack lưu lịch sử để undo: mỗi phần tử là { action: "learning" | "known" }
+  history: [] as Array<{ action: "learning" | "known" }>,
 };
 
 type FlashcardsGameState = typeof flashcardsInitial;
@@ -26,7 +31,11 @@ type FlashcardsGameAction =
   | { type: "REVIEW_HARD" }
   | { type: "TOGGLE_SORTING" }
   | { type: "TOGGLE_STARRED_ONLY" }
-  | { type: "SET_FLASHCARDS"; payload: Flashcards };
+  | { type: "SET_FLASHCARDS"; payload: Flashcards }
+  | { type: "TOGGLE_TRACK_PROGRESS" }
+  | { type: "MARK_LEARNING" }
+  | { type: "MARK_KNOWN_PROGRESS" }
+  | { type: "UNDO" };
 
 export const flashcardsReducer = (
   state: FlashcardsGameState,
@@ -71,12 +80,68 @@ export const flashcardsReducer = (
       ...flashcardsInitial,
       starredOnly: state.starredOnly,
       sorting: state.sorting,
+      trackProgress: state.trackProgress,
       flashcards: state.starredOnly ? starredCards : action.payload,
     };
   }
 
   if (action.type === "SET_FLASHCARDS") {
     return { ...state, flashcards: action.payload };
+  }
+
+  // Track Progress actions
+  if (action.type === "TOGGLE_TRACK_PROGRESS") {
+    if (state.trackProgress) {
+      // Tắt track progress → reset counters và quay lại chế độ thường
+      return {
+        ...state,
+        trackProgress: false,
+        learningCount: 0,
+        knownCount: 0,
+        history: [],
+      };
+    }
+    // Bật track progress → bật sorting mode và reset counters
+    return {
+      ...state,
+      trackProgress: true,
+      sorting: true,
+      learningCount: 0,
+      knownCount: 0,
+      history: [],
+    };
+  }
+
+  if (action.type === "MARK_LEARNING") {
+    return {
+      ...state,
+      learningCount: state.learningCount + 1,
+      index: state.index + 1,
+      know: false,
+      history: [...state.history, { action: "learning" }],
+    };
+  }
+
+  if (action.type === "MARK_KNOWN_PROGRESS") {
+    return {
+      ...state,
+      knownCount: state.knownCount + 1,
+      index: state.index + 1,
+      know: true,
+      history: [...state.history, { action: "known" }],
+    };
+  }
+
+  if (action.type === "UNDO") {
+    if (state.history.length === 0 || state.index === 0) return state;
+    const lastAction = state.history[state.history.length - 1]!;
+    return {
+      ...state,
+      index: state.index - 1,
+      learningCount: lastAction.action === "learning" ? state.learningCount - 1 : state.learningCount,
+      knownCount: lastAction.action === "known" ? state.knownCount - 1 : state.knownCount,
+      history: state.history.slice(0, -1),
+    };
   }
 
   const starredCards = state.flashcards.filter((card) => card.starred);

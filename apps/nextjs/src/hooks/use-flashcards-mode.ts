@@ -10,7 +10,7 @@ export function useFlashcardsMode(id: string) {
   const [{ flashcards: initialFlashcards }] =
     api.studySet.byId.useSuspenseQuery({ id });
 
-  const [{ sorting, flashcards, index, starredOnly, hard, know }, dispatch] =
+  const [{ sorting, flashcards, index, starredOnly, hard, know, trackProgress, learningCount, knownCount, history }, dispatch] =
     useFlashcardsModeReducer(initialFlashcards);
 
   const [cardRef, animateCard] = useAnimate();
@@ -61,7 +61,29 @@ export function useFlashcardsMode(id: string) {
       return;
     }
 
-    if (sorting) {
+    if (trackProgress) {
+      // Trong chế độ theo dõi tiến độ, nút X = đánh dấu "Đang học"
+      dispatch({ type: "MARK_LEARNING" });
+
+      await animateMessage(
+        messageRef.current,
+        {
+          opacity: [0, 1, 1, 0],
+          visibility: "visible",
+          rotate: [0, 2, 2, 0],
+          translateX: [0, 0, 0, -50],
+        },
+        {
+          ease: "linear",
+          duration: 0.5,
+        },
+      );
+      await animateMessage(
+        messageRef.current,
+        { visibility: "hidden" },
+        { duration: 0 },
+      );
+    } else if (sorting) {
       dispatch({ type: "MARK_HARD", payload: currentCard });
 
       await animateMessage(
@@ -99,7 +121,26 @@ export function useFlashcardsMode(id: string) {
       return;
     }
 
-    if (sorting) {
+    if (trackProgress) {
+      // Trong chế độ theo dõi tiến độ, nút ✓ = đánh dấu "Đã biết"
+      dispatch({ type: "MARK_KNOWN_PROGRESS" });
+
+      await animateMessage(
+        messageRef.current,
+        {
+          opacity: [0, 1, 1, 0],
+          visibility: "visible",
+          rotate: [0, -2, -2, 0],
+          translateX: [0, 0, 0, 50],
+        },
+        { ease: "linear", duration: 0.5 },
+      );
+      await animateMessage(
+        messageRef.current,
+        { visibility: "hidden" },
+        { duration: 0 },
+      );
+    } else if (sorting) {
       dispatch({ type: "MARK_KNOWN" });
 
       await animateMessage(
@@ -117,15 +158,16 @@ export function useFlashcardsMode(id: string) {
         { visibility: "hidden" },
         { duration: 0 },
       );
+
+      dispatch({ type: "NEXT" });
     } else {
       animateCard(
         cardRef.current,
         { translateX: [60, 0], rotateY: [-15, 0] },
         { duration: 0.15 },
       );
+      dispatch({ type: "NEXT" });
     }
-
-    dispatch({ type: "NEXT" });
   };
 
   const shuffle = () => {
@@ -140,6 +182,14 @@ export function useFlashcardsMode(id: string) {
     dispatch({ type: "TOGGLE_STARRED_ONLY" });
   };
 
+  const toggleTrackProgress = () => {
+    dispatch({ type: "TOGGLE_TRACK_PROGRESS" });
+  };
+
+  const undo = () => {
+    dispatch({ type: "UNDO" });
+  };
+
   return {
     index,
     currentCard,
@@ -152,6 +202,10 @@ export function useFlashcardsMode(id: string) {
     messageRef,
     know,
     progress,
+    trackProgress,
+    learningCount,
+    knownCount,
+    canUndo: history.length > 0,
     handleLeft,
     handleRight,
     reset,
@@ -159,5 +213,7 @@ export function useFlashcardsMode(id: string) {
     shuffle,
     toggleSorting,
     toggleStarredOnly,
+    toggleTrackProgress,
+    undo,
   };
 }

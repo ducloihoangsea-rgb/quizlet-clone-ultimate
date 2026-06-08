@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { Star } from "lucide-react";
+import { Lightbulb, Star } from "lucide-react";
 
 import type { RouterOutputs } from "@acme/api";
 import type { Session } from "@acme/auth";
@@ -48,9 +48,12 @@ const FlipCardContent = ({
         "[transform:rotateX(180deg)]": back,
       })}
     >
-      <div className="flex h-full w-full flex-col rounded-lg bg-primary-foreground p-4 drop-shadow-lg md:p-6">
+      <div className="flex h-full w-full flex-col rounded-t-lg bg-primary-foreground p-4 drop-shadow-lg md:p-6">
         <div className="flex items-center justify-between">
-          <span className="select-none font-semibold">{title}</span>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Lightbulb size={14} />
+            <span className="text-xs font-semibold">Hiển thị gợi ý</span>
+          </div>
           <div className="flex justify-end gap-2">
             {editable && <EditFlashcardDialog flashcard={flashcard} />}
             <Button
