@@ -32,6 +32,7 @@ interface SignUpClientProps {
   initialMode: "signup" | "signin";
   onSignInGoogle: () => Promise<void>;
   onSignInGithub: () => Promise<void>;
+  onSignInFacebook: () => Promise<void>;
   onSignInCredentials: (formData: FormData) => Promise<void>;
   onRegister: (formData: {
     email: string;
@@ -45,6 +46,7 @@ const SignUpClient = ({
   initialMode, 
   onSignInGoogle, 
   onSignInGithub,
+  onSignInFacebook,
   onSignInCredentials,
   onRegister
 }: SignUpClientProps) => {
@@ -121,9 +123,7 @@ const SignUpClient = ({
     }
   };
 
-  const handleFacebookLogin = () => {
-    toast.info("Đăng nhập bằng Facebook sẽ được hỗ trợ sớm!");
-  };
+  // Facebook login is handled via server action onSignInFacebook
 
   return (
     <div className="fixed inset-0 z-50 flex overflow-hidden bg-background select-none">
@@ -245,14 +245,16 @@ const SignUpClient = ({
               </button>
             </form>
 
-            <button 
-              onClick={handleFacebookLogin}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99] disabled:opacity-50"
-            >
-              <FacebookIcon />
-              <span>{t("continueWithFacebook")}</span>
-            </button>
+            <form action={onSignInFacebook}>
+              <button 
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center py-3 px-4 bg-muted/40 hover:bg-muted/70 border border-input rounded-xl font-bold text-sm text-foreground transition-all outline-none active:scale-[0.99] disabled:opacity-50"
+              >
+                <FacebookIcon />
+                <span>{t("continueWithFacebook")}</span>
+              </button>
+            </form>
 
             <form action={onSignInGithub}>
               <button 

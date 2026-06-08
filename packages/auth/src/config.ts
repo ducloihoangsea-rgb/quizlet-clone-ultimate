@@ -7,6 +7,7 @@ import { skipCSRFCheck } from "@auth/core";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import Facebook from "next-auth/providers/facebook";
 import Credentials from "next-auth/providers/credentials";
 import { eq } from "drizzle-orm";
 
@@ -46,6 +47,14 @@ export const authConfig = {
   providers: [
     Google,
     Github,
+    ...(env.AUTH_FACEBOOK_ID && env.AUTH_FACEBOOK_SECRET
+      ? [
+          Facebook({
+            clientId: env.AUTH_FACEBOOK_ID,
+            clientSecret: env.AUTH_FACEBOOK_SECRET,
+          }),
+        ]
+      : []),
     Credentials({
       name: "Credentials",
       credentials: {
