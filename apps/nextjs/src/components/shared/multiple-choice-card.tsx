@@ -77,7 +77,8 @@ const MultipleChoiceCard = forwardRef<
                     {
                       "border-red-600 bg-red-600/10":
                         answer !== definition && userAnswer === answer,
-                      "border-green-600 bg-green-600/10": answer === definition,
+                      "border-green-600 bg-green-600/10":
+                        answer === definition && !!userAnswer,
                     },
                   )}
                 >

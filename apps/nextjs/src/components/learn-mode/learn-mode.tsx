@@ -123,6 +123,22 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }
   }, [flashcards, config.shuffle, config.starredOnly]);
 
+  // Cập nhật tiến độ học tập thực tế vào localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined" && currentIndex > 0) {
+      const currentLearned = Number(localStorage.getItem(`study_progress_learned_${id}`) ?? 0);
+      if (currentIndex > currentLearned) {
+        localStorage.setItem(`study_progress_learned_${id}`, String(currentIndex));
+      }
+    }
+  }, [currentIndex, id]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && isCompleted && sessionCards.length > 0) {
+      localStorage.setItem(`study_progress_learned_${id}`, String(sessionCards.length));
+    }
+  }, [isCompleted, sessionCards.length, id]);
+
   const saveConfig = (newConfig: LearnConfig) => {
     setConfig(newConfig);
     if (typeof window !== "undefined") {

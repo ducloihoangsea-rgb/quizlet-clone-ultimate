@@ -42,18 +42,82 @@ const generateMultipleChoiceCards = (
   pool: SelectFlashcard[],
 ) => {
   return flashcards.map((card) => {
-    const falseAnswers = pool
-      .filter(({ id }) => id !== card.id)
-      .sort(() => 0.5 - Math.random())
-      .map((card) => card.definition)
-      .slice(0, 3);
+    // Trích xuất các phương án trắc nghiệm A, B, C, D từ term
+    const extractMultipleChoice = (text: string) => {
+      const regexA = /(?:^|\n)\s*([A|a][\.\)\-:\s]+[^\n]+)/;
+      const regexB = /(?:^|\n)\s*([B|b][\.\)\-:\s]+[^\n]+)/;
+      const regexC = /(?:^|\n)\s*([C|c][\.\)\-:\s]+[^\n]+)/;
+      const regexD = /(?:^|\n)\s*([D|d][\.\)\-:\s]+[^\n]+)/;
 
-    const answers = [...falseAnswers, card.definition].sort(
-      () => 0.5 - Math.random(),
-    );
+      const a = text.match(regexA)?.[1]?.trim();
+      const b = text.match(regexB)?.[1]?.trim();
+      const c = text.match(regexC)?.[1]?.trim();
+      const d = text.match(regexD)?.[1]?.trim();
+
+      if (a && b && c && d) {
+        return [a, b, c, d];
+      }
+      return null;
+    };
+
+    const cleanText = (str: string) => {
+      return str
+        .replace(/^[a-zA-Z][\.\)\-:\s]+/, "") // loại bỏ tiền tố A., B), C:,...
+        .trim()
+        .toLowerCase();
+    };
+
+    const choices = extractMultipleChoice(card.term);
+    let answers: string[] = [];
+    let updatedDefinition = card.definition;
+
+    if (choices) {
+      // Vì là trắc nghiệm tự soạn nên ta giữ nguyên thứ tự A, B, C, D
+      answers = choices;
+
+      // Tìm phương án đúng trong choices khớp với definition
+      let matchedChoice = choices.find(
+        (choice) => cleanText(choice) === cleanText(card.definition)
+      );
+
+      if (!matchedChoice) {
+        // Nếu không khớp hoàn toàn, kiểm tra xem có chứa nhau không
+        matchedChoice = choices.find((choice) => {
+          const cleanC = cleanText(choice);
+          const cleanD = cleanText(card.definition);
+          return cleanC.includes(cleanD) || cleanD.includes(cleanC);
+        });
+      }
+
+      if (!matchedChoice) {
+        // Nếu definition chỉ là chữ cái (A, B, C, D)
+        const firstLetter = card.definition.trim().charAt(0).toUpperCase();
+        if (["A", "B", "C", "D"].includes(firstLetter)) {
+          matchedChoice = choices.find((choice) =>
+            choice.trim().toUpperCase().startsWith(firstLetter)
+          );
+        }
+      }
+
+      if (matchedChoice) {
+        updatedDefinition = matchedChoice;
+      }
+    } else {
+      // Nếu không phải câu hỏi trắc nghiệm tự soạn, bốc ngẫu nhiên định nghĩa các câu khác
+      const falseAnswers = pool
+        .filter(({ id }) => id !== card.id)
+        .sort(() => 0.5 - Math.random())
+        .map((card) => card.definition)
+        .slice(0, 3);
+
+      answers = [...falseAnswers, card.definition].sort(
+        () => 0.5 - Math.random()
+      );
+    }
 
     return {
       ...card,
+      definition: updatedDefinition,
       answers,
     };
   });
