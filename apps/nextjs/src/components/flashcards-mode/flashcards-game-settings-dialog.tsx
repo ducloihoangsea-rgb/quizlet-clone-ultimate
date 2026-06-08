@@ -45,25 +45,24 @@ const FlashcardsGameSettingsDialog = () => {
       </Tooltip>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>Cài đặt</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
+            Tùy chỉnh cách bạn muốn học thẻ ghi nhớ.
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col">
-            <span className="font-medium">Cards sorting</span>
+            <span className="font-medium">Phân loại thẻ</span>
             <span className="text-sm text-muted-foreground">
-              Divides cards into two groups - easy and hard. You can then play
-              on hard ones only.
+              Chia thẻ thành hai nhóm - dễ và khó. Sau đó bạn có thể chỉ ôn lại
+              các thẻ khó.
             </span>
           </div>
           <Switch checked={sorting} onCheckedChange={toggleSorting} />
         </div>
         <Separator />
         <div className="flex items-center justify-between">
-          <span className="font-medium">Study only starred terms</span>
+          <span className="font-medium">Chỉ học thuật ngữ có gắn sao</span>
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -77,7 +76,7 @@ const FlashcardsGameSettingsDialog = () => {
               </TooltipTrigger>
               {disableStarredOnly && (
                 <TooltipContent>
-                  You have to star some terms to use this feature
+                  Bạn cần gắn sao một số thuật ngữ để sử dụng tính năng này
                 </TooltipContent>
               )}
             </Tooltip>
@@ -86,7 +85,7 @@ const FlashcardsGameSettingsDialog = () => {
         <Separator />
         <div>
           <Button onClick={reset} variant="destructive">
-            Restart Flashcards
+            Đặt lại thẻ ghi nhớ
           </Button>
         </div>
       </DialogContent>

@@ -46,16 +46,16 @@ const FlashcardsGame = ({ fullscreen, session }: FlashcardsGameProps) => {
   const firstButton = {
     text:
       hardCount > 0
-        ? "Review the tough terms"
+        ? "Ôn lại các thuật ngữ khó"
         : !fullscreen
-          ? "Learn flashcards"
-          : "Back to set",
+          ? "Học thẻ ghi nhớ"
+          : "Quay lại học phần",
     description:
       hardCount > 0
-        ? `Review Flashcards again with the ${hardCount} terms you're still learing.`
+        ? `Ôn lại với ${hardCount} thuật ngữ bạn vẫn đang học.`
         : !fullscreen
-          ? "Learn flashcards"
-          : "Get back to the study set.",
+          ? "Bắt đầu học thẻ ghi nhớ"
+          : "Quay lại trang học phần.",
     callback:
       hardCount > 0
         ? reviewHard
@@ -66,8 +66,8 @@ const FlashcardsGame = ({ fullscreen, session }: FlashcardsGameProps) => {
   };
 
   const secondButton = {
-    text: "Reset Flashcards",
-    description: `Study all ${count} terms from the beginning.`,
+    text: "Đặt lại thẻ ghi nhớ",
+    description: `Học lại toàn bộ ${count} thuật ngữ từ đầu.`,
     callback: reset,
     Icon: <RotateCcw size={32} />,
   };

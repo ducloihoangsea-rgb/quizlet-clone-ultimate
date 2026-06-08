@@ -13,7 +13,7 @@ const MessageCard = () => {
       <div
         className={`text-3xl font-bold ${know ? "text-green-400" : "text-orange-600"}`}
       >
-        {know ? "Know" : "Still learning"}
+        {know ? "Đã biết" : "Đang học"}
       </div>
     </div>
   );

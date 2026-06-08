@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import React from "react";
 import Image from "next/image";
@@ -5,6 +7,8 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@acme/ui/alert";
 import { Button } from "@acme/ui/button";
 import { RadialProgress } from "@acme/ui/radial-progress";
+
+import { useTranslation } from "~/contexts/i18n-context";
 
 interface ResultButton {
   Icon: ReactNode;
@@ -26,13 +30,18 @@ const GameResult = ({
   firstButton,
   secondButton,
 }: GameResultProps) => {
+  const { t } = useTranslation();
   const progressValue = +(((cardCount - hard) / cardCount) * 100).toFixed(0);
+
+  const titleText = hard > 0
+    ? "Tuyệt vời! Bạn sắp hoàn thành rồi."
+    : "Xuất sắc! Bạn đã nắm vững tất cả.";
 
   return (
     <div className="mb-6">
       <div className="mb-6 flex">
         <h2 className="text-2xl font-bold md:text-4xl">
-          Amazing! You&apos;re almost there.
+          {titleText}
         </h2>
         <div className="flex w-[45%] justify-end">
           <div className="relative h-[77px] w-[120px] md:h-[103px] md:w-[160px]">
@@ -42,23 +51,23 @@ const GameResult = ({
       </div>
       <div className="flex flex-col gap-8 md:flex-row">
         <div className="flex-1">
-          <h3 className="mb-4 text-xl font-bold">How you&apos;re doing</h3>
+          <h3 className="mb-4 text-xl font-bold">Kết quả học tập</h3>
           <div className="flex items-center gap-6">
             <RadialProgress value={progressValue} size={100} strokeWidth={12} />
             <div className="flex flex-1 flex-col gap-2">
               <Alert className="flex items-center justify-between">
-                <AlertTitle className="mb-0">Know</AlertTitle>
+                <AlertTitle className="mb-0">{t("known")}</AlertTitle>
                 <AlertDescription>{cardCount - hard}</AlertDescription>
               </Alert>
               <Alert className="flex items-center justify-between">
-                <AlertTitle className="mb-0">Learning</AlertTitle>
+                <AlertTitle className="mb-0">{t("learning")}</AlertTitle>
                 <AlertDescription>{hard}</AlertDescription>
               </Alert>
             </div>
           </div>
         </div>
         <div className="flex-1">
-          <h3 className="mb-4 text-xl font-bold">Next steps</h3>
+          <h3 className="mb-4 text-xl font-bold">Bước tiếp theo</h3>
           <div className="flex flex-col gap-4">
             <Button
               onClick={firstButton.callback}

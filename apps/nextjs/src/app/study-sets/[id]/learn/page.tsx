@@ -26,6 +26,7 @@ export default async function Learn({
   params: { id: string };
 }) {
   await api.studySet.learnCards.prefetch({ id });
+  await api.studySet.byId.prefetch({ id });
   const session = await auth();
 
   return (
