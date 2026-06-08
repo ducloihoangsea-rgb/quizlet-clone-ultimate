@@ -45,7 +45,7 @@ const WrittenCard = forwardRef<HTMLInputElement, WrittenCardProps>(
                 })}
               />
             </FormItem>
-            {userAnswer !== definition && (
+            {!!userAnswer && userAnswer !== definition && (
               <Alert className="mt-4 border-green-600 text-green-600">
                 <Check size={16} className="text-green-600" />
                 <AlertTitle>{definition}</AlertTitle>
