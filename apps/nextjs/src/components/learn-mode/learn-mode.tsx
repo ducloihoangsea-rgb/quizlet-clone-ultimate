@@ -86,6 +86,16 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   // Flashcards Mode state
   const [isFlipped, setIsFlipped] = useState(false);
 
+  // Determine active mode based on config priority: MC -> Written -> Flashcards
+  const activeMode = config.questionTypes.mc 
+    ? "mc" 
+    : config.questionTypes.written 
+      ? "written" 
+      : "flashcards";
+
+  const currentCard = sessionCards[currentIndex];
+  const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
+
   const handleResetProgress = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(`study_progress_learned_${id}`);
@@ -283,16 +293,6 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   const backToStudySet = () => {
     router.push(`/study-sets/${id}`);
   };
-
-  const currentCard = sessionCards[currentIndex];
-  const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
-
-  // Determine active mode based on config priority: MC -> Written -> Flashcards
-  const activeMode = config.questionTypes.mc 
-    ? "mc" 
-    : config.questionTypes.written 
-      ? "written" 
-      : "flashcards";
 
   if (!isMounted) {
     return (
