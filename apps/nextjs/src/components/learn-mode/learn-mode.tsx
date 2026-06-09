@@ -234,6 +234,13 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }
   }, [isCompleted, sessionCards.length, id]);
 
+  // Determine active mode based on config priority: MC -> Written -> Flashcards
+  const activeMode = config.questionTypes.mc 
+    ? "mc" 
+    : config.questionTypes.written 
+      ? "written" 
+      : "flashcards";
+
   // Bắt phím bất kỳ để tiếp tục trong chế độ tự luận khi trả lời sai hoặc bỏ qua
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -369,12 +376,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   const currentCard = sessionCards[currentIndex];
   const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
 
-  // Determine active mode based on config priority: MC -> Written -> Flashcards
-  const activeMode = config.questionTypes.mc 
-    ? "mc" 
-    : config.questionTypes.written 
-      ? "written" 
-      : "flashcards";
+
 
   if (!isMounted) {
     return (
