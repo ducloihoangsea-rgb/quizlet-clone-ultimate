@@ -52,10 +52,10 @@ const MultipleChoiceCard = forwardRef<
           )}
         </div> */}
           {!userAnswer && (
-            <span className="mb-4 inline-block">Choose answer</span>
+            <span className="mb-4 inline-block font-semibold text-muted-foreground">Chọn đáp án</span>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            {answers.map((answer, answerIndex) => (
+            {(answers || []).map((answer, answerIndex) => (
               <Label
                 key={answerIndex}
                 htmlFor={`card-${index}-choice-${answerIndex}`}
@@ -73,16 +73,16 @@ const MultipleChoiceCard = forwardRef<
                 <Card
                   onClick={(event) => callback && callback(answerIndex, event)}
                   className={cn(
-                    "cursor-pointer border-2 peer-checked:border-blue-600 peer-checked:bg-blue-600/10",
+                    "cursor-pointer border-2 peer-checked:border-blue-600 peer-checked:bg-blue-600/10 hover:shadow-sm transition-all",
                     {
-                      "border-red-600 bg-red-600/10":
+                      "border-red-600 bg-red-600/10 text-red-700 dark:text-red-300":
                         answer !== definition && userAnswer === answer,
-                      "border-green-600 bg-green-600/10":
+                      "border-green-600 bg-green-600/10 text-green-700 dark:text-green-300":
                         answer === definition && !!userAnswer,
                     },
                   )}
                 >
-                  <CardContent className="p-4">{answer}</CardContent>
+                  <CardContent className="p-4 font-sans font-semibold">{answer}</CardContent>
                 </Card>
               </Label>
             ))}

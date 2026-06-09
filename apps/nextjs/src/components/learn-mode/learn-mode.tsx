@@ -86,16 +86,6 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   // Flashcards Mode state
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Determine active mode based on config priority: MC -> Written -> Flashcards
-  const activeMode = config.questionTypes.mc 
-    ? "mc" 
-    : config.questionTypes.written 
-      ? "written" 
-      : "flashcards";
-
-  const currentCard = sessionCards[currentIndex];
-  const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
-
   const handleResetProgress = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(`study_progress_learned_${id}`);
@@ -104,32 +94,114 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   };
 
   // Initialize session cards
-  const restart = () => {
+  const restart = (currentConfig = config) => {
     let cards = [...flashcards];
 
     // Filter starred terms
-    if (config.starredOnly) {
+    if (currentConfig.starredOnly) {
       cards = cards.filter((c) => c.starred);
     }
 
     // Shuffle cards
-    if (config.shuffle) {
+    if (currentConfig.shuffle) {
       cards.sort(() => Math.random() - 0.5);
     }
 
     // Fallback if no starred terms
-    if (cards.length === 0 && config.starredOnly) {
+    if (cards.length === 0 && currentConfig.starredOnly) {
       toast.info("Không có thuật ngữ nào được gắn sao! Đang học tất cả thuật ngữ.");
       cards = [...flashcards];
-      if (config.shuffle) {
+      if (currentConfig.shuffle) {
         cards.sort(() => Math.random() - 0.5);
       }
-      setConfig((prev) => {
-        const next = { ...prev, starredOnly: false };
-        localStorage.setItem(`quizlet_learn_config_${id}`, JSON.stringify(next));
-        return next;
-      });
+      
+      const nextConfig = { ...currentConfig, starredOnly: false };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`quizlet_learn_config_${id}`, JSON.stringify(nextConfig));
+      }
+      setConfig(nextConfig);
     }
+
+    // Tự động tạo phương án trắc nghiệm phù hợp với hướng câu trả lời ở client
+    cards = cards.map((card) => {
+      // Kiểm tra xem thẻ ghi nhớ có phải là trắc nghiệm tự soạn (dạng A. B. C. D. trong term) hay không
+      const extractMultipleChoice = (text: string) => {
+        const regexA = /(?:^|\n)\s*([A|a][\.\)\-:\s]+[^\n]+)/;
+        const regexB = /(?:^|\n)\s*([B|b][\.\)\-:\s]+[^\n]+)/;
+        const regexC = /(?:^|\n)\s*([C|c][\.\)\-:\s]+[^\n]+)/;
+        const regexD = /(?:^|\n)\s*([D|d][\.\)\-:\s]+[^\n]+)/;
+
+        const a = text.match(regexA)?.[1]?.trim();
+        const b = text.match(regexB)?.[1]?.trim();
+        const c = text.match(regexC)?.[1]?.trim();
+        const d = text.match(regexD)?.[1]?.trim();
+
+        if (a && b && c && d) {
+          return [a, b, c, d];
+        }
+        return null;
+      };
+
+      const cleanText = (str: string) => {
+        return str
+          .replace(/^[a-zA-Z][\.\)\-:\s]+/, "")
+          .trim()
+          .toLowerCase();
+      };
+
+      const choices = extractMultipleChoice(card.term);
+      let answers: string[] = [];
+      let updatedDefinition = card.definition;
+
+      if (choices) {
+        answers = choices;
+        let matchedChoice = choices.find(
+          (choice) => cleanText(choice) === cleanText(card.definition)
+        );
+
+        if (!matchedChoice) {
+          matchedChoice = choices.find((choice) => {
+            const cleanC = cleanText(choice);
+            const cleanD = cleanText(card.definition);
+            return cleanC.includes(cleanD) || cleanD.includes(cleanC);
+          });
+        }
+
+        if (!matchedChoice) {
+          const firstLetter = card.definition.trim().charAt(0).toUpperCase();
+          if (["A", "B", "C", "D"].includes(firstLetter)) {
+            matchedChoice = choices.find((choice) =>
+              choice.trim().toUpperCase().startsWith(firstLetter)
+            );
+          }
+        }
+
+        if (matchedChoice) {
+          updatedDefinition = matchedChoice;
+        }
+      } else {
+        // Trắc nghiệm tự tạo ở client dựa trên config.answerWith
+        const isAnswerWithTerm = currentConfig.answerWith === "term";
+        const correctAnswer = isAnswerWithTerm ? card.term : card.definition;
+        
+        const falseAnswers = flashcards
+          .filter((c) => c.id !== card.id)
+          .map((c) => (isAnswerWithTerm ? c.term : c.definition))
+          .filter((val) => val && val.trim() !== "")
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+
+        answers = [...falseAnswers, correctAnswer].sort(
+          () => 0.5 - Math.random()
+        );
+      }
+
+      return {
+        ...card,
+        definition: updatedDefinition,
+        answers,
+      };
+    });
 
     setSessionCards(cards);
     setCurrentIndex(0);
@@ -142,9 +214,9 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
   useEffect(() => {
     if (flashcards.length > 0) {
-      restart();
+      restart(config);
     }
-  }, [flashcards, config.shuffle, config.starredOnly]);
+  }, [flashcards, config.shuffle, config.starredOnly, config.answerWith]);
 
   // Cập nhật tiến độ học tập thực tế vào localStorage
   useEffect(() => {
@@ -168,7 +240,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
       if (activeMode === "written" && userAnswer !== undefined) {
         const card = sessionCards[currentIndex];
         if (card) {
-          const isCorrect = userAnswer.trim().toLowerCase() === card.definition.trim().toLowerCase();
+          const isCorrect = (userAnswer || "").trim().toLowerCase() === (card.definition || "").trim().toLowerCase();
           if (!isCorrect) {
             e.preventDefault();
             handleContinue();
@@ -293,6 +365,16 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   const backToStudySet = () => {
     router.push(`/study-sets/${id}`);
   };
+
+  const currentCard = sessionCards[currentIndex];
+  const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
+
+  // Determine active mode based on config priority: MC -> Written -> Flashcards
+  const activeMode = config.questionTypes.mc 
+    ? "mc" 
+    : config.questionTypes.written 
+      ? "written" 
+      : "flashcards";
 
   if (!isMounted) {
     return (

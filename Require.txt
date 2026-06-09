@@ -1,12 +1,5 @@
-[DANH SACH FILE/FOLDER CAN THIET DE CHAY PHAN MEM TREN MAY MOI]
-1. .env (Chứa các cấu hình môi trường, thông tin kết nối database, các khóa bảo mật OAuth)
-2. package.json và pnpm-workspace.yaml (File cấu hình dependency của monorepo)
-3. apps/nextjs/.next (Thư mục chứa mã nguồn Web đã được biên dịch build production)
-4. apps/nextjs/package.json
-5. packages/ (Thư mục chứa các logic dùng chung của Monorepo: db, api, auth, ui, validators)
-6. node_modules/ (Các thư viện dependencies cần thiết cho dự án)
-
-[YÊU CẦU HỆ THỐNG MỚI MÁY CẦN CÓ]
-- Node.js phiên bản >= 22.10.0
-- PNPM phiên bản mới nhất (Cài bằng lệnh: npm install -g pnpm)
-- Database PostgreSQL (ví dụ: Supabase, Neon.tech hoặc cơ sở dữ liệu PostgreSQL chạy local)
+.env
+.next/
+node_modules/
+package.json
+pnpm-lock.yaml
