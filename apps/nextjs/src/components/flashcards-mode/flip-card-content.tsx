@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { Lightbulb, Star } from "lucide-react";
+import { Lightbulb, Star, Volume2 } from "lucide-react";
 
 import type { RouterOutputs } from "@acme/api";
 import type { Session } from "@acme/auth";
@@ -9,6 +9,7 @@ import { cn } from "@acme/ui";
 import { Button } from "@acme/ui/button";
 
 import { useSignInDialogContext } from "~/contexts/sign-in-dialog-context";
+import { useFlashcardsModeContext } from "~/contexts/flashcards-mode-context";
 import useStar from "~/hooks/use-star";
 import EditFlashcardDialog from "../shared/edit-flashcard-dialog";
 
@@ -27,6 +28,7 @@ const FlipCardContent = ({
 }: FlipCardContentProps) => {
   const { toggleStar } = useStar(flashcard);
   const { onOpenChange } = useSignInDialogContext();
+  const { frontFace } = useFlashcardsModeContext();
 
   const onStarClick = (event: MouseEvent) => {
     event.stopPropagation();
@@ -38,9 +40,34 @@ const FlipCardContent = ({
     }
   };
 
-  const title = back ? "Definition" : "Term";
+  let title = "";
+  let content = "";
 
-  const content = back ? flashcard.definition : flashcard.term;
+  if (frontFace === "both") {
+    if (!back) {
+      title = "Thuật ngữ & Định nghĩa";
+      content = `${flashcard.term}\n\n---\n\n${flashcard.definition}`;
+    } else {
+      title = "Thuật ngữ & Định nghĩa (Mặt sau)";
+      content = `${flashcard.definition}\n\n---\n\n${flashcard.term}`;
+    }
+  } else {
+    const isDefinitionOnFront = frontFace === "definition";
+    const showDefinition = back ? !isDefinitionOnFront : isDefinitionOnFront;
+    title = showDefinition ? "Định nghĩa" : "Thuật ngữ";
+    content = showDefinition ? flashcard.definition : flashcard.term;
+  }
+
+  const handleSpeak = (event: MouseEvent) => {
+    event.stopPropagation();
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(content);
+      const hasVietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(content);
+      utterance.lang = hasVietnamese ? "vi-VN" : "en-US";
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   return (
     <div
@@ -56,6 +83,14 @@ const FlipCardContent = ({
           </div>
           <div className="flex justify-end gap-2">
             {editable && <EditFlashcardDialog flashcard={flashcard} />}
+            <Button
+              className="rounded-full"
+              onClick={handleSpeak}
+              variant="ghost"
+              size="icon"
+            >
+              <Volume2 size={16} />
+            </Button>
             <Button
               className="rounded-full"
               onClick={onStarClick}

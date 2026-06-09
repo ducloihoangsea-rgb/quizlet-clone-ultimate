@@ -15,16 +15,41 @@ interface FlipCardProps {
 }
 
 const FlipCard = ({ fullscreen, session }: FlipCardProps) => {
-  const { currentCard, cardRef } = useFlashcardsModeContext();
+  const { currentCard, cardRef, textToSpeech, frontFace } = useFlashcardsModeContext();
 
   const [animation, setAnimation] = useState<
     "flipIn" | "flipOut" | undefined
   >();
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  // Reset trạng thái lật khi đổi thẻ
+  useEffect(() => {
+    setIsFlipped(false);
+    setAnimation(undefined);
+  }, [currentCard]);
+
+  // Tự động phát âm khi chuyển thẻ hoặc lật thẻ nếu bật textToSpeech
+  useEffect(() => {
+    if (textToSpeech && currentCard) {
+      const isDefinitionOnFront = frontFace === "definition";
+      const showDefinition = isFlipped ? !isDefinitionOnFront : isDefinitionOnFront;
+      const textToSpeak = showDefinition ? currentCard.definition : currentCard.term;
+
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        const hasVietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(textToSpeak);
+        utterance.lang = hasVietnamese ? "vi-VN" : "en-US";
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  }, [currentCard, isFlipped, textToSpeech, frontFace]);
 
   const toggleFlip = () => {
     setAnimation((prev) =>
       !prev || prev === "flipOut" ? "flipIn" : "flipOut",
     );
+    setIsFlipped((prev) => !prev);
   };
 
   const flipVariants = {

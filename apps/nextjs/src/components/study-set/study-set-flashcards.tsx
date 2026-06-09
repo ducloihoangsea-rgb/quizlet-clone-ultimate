@@ -1,33 +1,75 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 
 import type { Session } from "@acme/auth";
+import { cn } from "@acme/ui";
 
 import { api } from "~/trpc/react";
 import FlashcardCard from "../shared/flashcard-card";
-import { useTranslation } from "~/contexts/i18n-context";
 
 const StudySetFlashcards = ({ session }: { session: Session | null }) => {
   const { id }: { id: string } = useParams();
   const [{ flashcards, userId }] = api.studySet.byId.useSuspenseQuery({ id });
-  const { t } = useTranslation();
+  
+  const [filter, setFilter] = useState<"all" | "starred">("all");
+
+  const starredCount = flashcards.filter((f) => f.starred).length;
+  const filteredFlashcards = filter === "starred" 
+    ? flashcards.filter((f) => f.starred) 
+    : flashcards;
 
   return (
-    <div className="mb-8 select-none">
-      <span className="mb-5 inline-block text-lg font-extrabold tracking-tight">
-        {t("termsInSet")} ({flashcards.length})
-      </span>
-      <div className="flex flex-col gap-3">
-        {flashcards.map((flashcard, index) => (
-          <FlashcardCard
-            editable={userId === session?.user.id}
-            key={index}
-            flashcard={flashcard}
-            session={session}
-          />
-        ))}
+    <div className="mb-8 select-none font-sans">
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-3">
+        <span className="text-xl font-black tracking-tight text-foreground">
+          Thuật ngữ trong học phần này ({flashcards.length})
+        </span>
+        
+        <div className="flex items-center gap-4 text-sm font-bold">
+          <button
+            onClick={() => setFilter("all")}
+            className={cn(
+              "pb-1 transition-all border-b-2 outline-none",
+              filter === "all"
+                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-black"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Tất cả
+          </button>
+          
+          <button
+            onClick={() => setFilter("starred")}
+            className={cn(
+              "pb-1 transition-all border-b-2 flex items-center gap-1 outline-none",
+              filter === "starred"
+                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-black"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Gắn dấu sao ({starredCount})
+          </button>
+        </div>
       </div>
+
+      {filteredFlashcards.length === 0 && filter === "starred" ? (
+        <div className="py-12 text-center border-2 border-dashed rounded-2xl bg-muted/20 text-muted-foreground font-bold font-sans">
+          Chưa có thuật ngữ nào được gắn dấu sao trong học phần này.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {filteredFlashcards.map((flashcard, index) => (
+            <FlashcardCard
+              editable={userId === session?.user.id}
+              key={flashcard.id || index}
+              flashcard={flashcard}
+              session={session}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

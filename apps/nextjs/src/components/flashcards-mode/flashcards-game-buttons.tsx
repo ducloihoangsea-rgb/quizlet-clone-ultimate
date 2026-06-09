@@ -81,7 +81,7 @@ const FlashcardsGameButtons = ({ fullscreen }: FlashcardButtonsProps) => {
             </Button>
           </div>
 
-          {/* Nút Undo và Fullscreen - bên phải */}
+          {/* Nút Undo, Settings và Fullscreen - bên phải */}
           <TooltipProvider delayDuration={0}>
             <div className="flex items-center gap-2">
               <Tooltip>
@@ -91,7 +91,7 @@ const FlashcardsGameButtons = ({ fullscreen }: FlashcardButtonsProps) => {
                     onClick={undo}
                     disabled={!canUndo}
                     size="icon"
-                    className="transition-all"
+                    className="transition-all rounded-xl"
                   >
                     <Undo2 size={18} />
                   </Button>
@@ -99,11 +99,13 @@ const FlashcardsGameButtons = ({ fullscreen }: FlashcardButtonsProps) => {
                 <TooltipContent>Hoàn tác</TooltipContent>
               </Tooltip>
 
+              <FlashcardsGameSettingsDialog />
+
               {!fullscreen && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link href={`/study-sets/${id}/flashcards`}>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" className="rounded-xl">
                         <Maximize size={18} />
                       </Button>
                     </Link>

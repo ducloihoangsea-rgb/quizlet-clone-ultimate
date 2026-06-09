@@ -10,7 +10,7 @@ export function useFlashcardsMode(id: string) {
   const [{ flashcards: initialFlashcards }] =
     api.studySet.byId.useSuspenseQuery({ id });
 
-  const [{ sorting, flashcards, index, starredOnly, hard, know, trackProgress, learningCount, knownCount, history }, dispatch] =
+  const [{ sorting, flashcards, index, starredOnly, hard, know, trackProgress, learningCount, knownCount, history, frontFace, textToSpeech }, dispatch] =
     useFlashcardsModeReducer(initialFlashcards);
 
   const [cardRef, animateCard] = useAnimate();
@@ -178,6 +178,14 @@ export function useFlashcardsMode(id: string) {
     dispatch({ type: "TOGGLE_SORTING" });
   };
 
+  const setFrontFace = (payload: "term" | "definition" | "both") => {
+    dispatch({ type: "SET_FRONT_FACE", payload });
+  };
+
+  const toggleTextToSpeech = () => {
+    dispatch({ type: "TOGGLE_TEXT_TO_SPEECH" });
+  };
+
   const toggleStarredOnly = () => {
     dispatch({ type: "TOGGLE_STARRED_ONLY" });
   };
@@ -206,6 +214,10 @@ export function useFlashcardsMode(id: string) {
     learningCount,
     knownCount,
     canUndo: history.length > 0,
+    frontFace,
+    setFrontFace,
+    textToSpeech,
+    toggleTextToSpeech,
     handleLeft,
     handleRight,
     reset,

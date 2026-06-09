@@ -18,6 +18,8 @@ export const flashcardsInitial = {
   knownCount: 0,
   // Stack lưu lịch sử để undo: mỗi phần tử là { action: "learning" | "known" }
   history: [] as Array<{ action: "learning" | "known" }>,
+  frontFace: "term" as "term" | "definition" | "both",
+  textToSpeech: false,
 };
 
 type FlashcardsGameState = typeof flashcardsInitial;
@@ -35,7 +37,9 @@ type FlashcardsGameAction =
   | { type: "TOGGLE_TRACK_PROGRESS" }
   | { type: "MARK_LEARNING" }
   | { type: "MARK_KNOWN_PROGRESS" }
-  | { type: "UNDO" };
+  | { type: "UNDO" }
+  | { type: "SET_FRONT_FACE"; payload: "term" | "definition" | "both" }
+  | { type: "TOGGLE_TEXT_TO_SPEECH" };
 
 export const flashcardsReducer = (
   state: FlashcardsGameState,
@@ -142,6 +146,14 @@ export const flashcardsReducer = (
       knownCount: lastAction.action === "known" ? state.knownCount - 1 : state.knownCount,
       history: state.history.slice(0, -1),
     };
+  }
+
+  if (action.type === "SET_FRONT_FACE") {
+    return { ...state, frontFace: action.payload };
+  }
+
+  if (action.type === "TOGGLE_TEXT_TO_SPEECH") {
+    return { ...state, textToSpeech: !state.textToSpeech };
   }
 
   const starredCards = state.flashcards.filter((card) => card.starred);

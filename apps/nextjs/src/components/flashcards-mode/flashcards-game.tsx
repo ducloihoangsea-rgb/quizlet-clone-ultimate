@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { GraduationCap, RotateCcw, Undo2 } from "lucide-react";
 
@@ -31,9 +32,44 @@ const FlashcardsGame = ({ fullscreen, session }: FlashcardsGameProps) => {
     trackProgress,
     learningCount,
     knownCount,
+    handleLeft,
+    handleRight,
   } = useFlashcardsModeContext();
   const router = useRouter();
   const { id }: { id: string } = useParams();
+
+  // Thêm bộ lắng nghe phím tắt bàn phím toàn cục
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Bỏ qua nếu đang tập trung vào input hoặc textarea
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
+      if (e.key === " ") {
+        e.preventDefault();
+        // Lật thẻ bằng cách kích hoạt click vào thẻ
+        const cardElement = document.querySelector('[role="button"]') as HTMLDivElement | null;
+        if (cardElement) {
+          cardElement.click();
+        }
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleLeft();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleRight();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleLeft, handleRight]);
 
   const learnFlashcards = () => {
     router.push(`/study-sets/${id}/learn`);
