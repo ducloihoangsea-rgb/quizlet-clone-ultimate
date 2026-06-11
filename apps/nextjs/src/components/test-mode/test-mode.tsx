@@ -187,6 +187,9 @@ const TestMode = () => {
     router.push(`/study-sets/${id}`);
   };
 
+  const answeredCount = Object.keys(userAnswers).length;
+  const totalQuestions = questions.length;
+
   // Render các loại thẻ câu hỏi
   const renderMultipleChoice = (q: any, qIdx: number) => {
     const uAns = userAnswers[qIdx];
@@ -202,11 +205,11 @@ const TestMode = () => {
         })}
       >
         <CardContent className="p-0 space-y-4 font-sans">
-          <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase tracking-widest">
+          <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
             <span>Câu hỏi {qIdx + 1} &middot; Trắc nghiệm</span>
           </div>
 
-          <div className="text-xl font-bold text-foreground whitespace-pre-wrap leading-relaxed">
+          <div className="text-base sm:text-lg font-normal text-[#374151] whitespace-pre-wrap leading-relaxed">
             {q.term}
           </div>
 
@@ -221,11 +224,11 @@ const TestMode = () => {
               const isSelected = uAns === ans;
               const isCorrectAns = ans === q.definition;
 
-              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border border-[#d9dde8] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer text-base";
+              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border border-[#d9dde8] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer text-base font-normal text-[#374151]";
               let iconToShow = null;
 
               if (isSelected && !isTestFinished) {
-                cardStyles = "border-2 border-[#282e3e] dark:border-slate-300 bg-[#f6f7fb] dark:bg-slate-800/60 text-[#282e3e] dark:text-white text-base font-bold";
+                cardStyles = "border border-[#4255ff] bg-[#edefff] text-[#374151] text-base font-normal";
               }
 
               if (isTestFinished) {
@@ -251,19 +254,19 @@ const TestMode = () => {
                 >
                   <span
                     className={cn(
-                      "w-6 h-6 rounded-lg flex items-center justify-center text-xs font-extrabold flex-shrink-0",
+                      "w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0",
                       isSelected && !isTestFinished
-                        ? "bg-blue-600 text-white"
+                        ? "bg-[#4255ff] text-white"
                         : isTestFinished && isSelected && !isCorrectAns
                           ? "bg-orange-100 text-orange-600"
                           : isTestFinished && isCorrectAns
                             ? "bg-green-100 text-green-600"
-                            : "bg-slate-100 dark:bg-slate-800 text-muted-foreground"
+                            : "bg-gray-200 dark:bg-slate-800 text-gray-600"
                     )}
                   >
                     {iconToShow ? iconToShow : ansIdx + 1}
                   </span>
-                  <span className="text-base sm:text-lg">{ans}</span>
+                  <span className="text-base sm:text-lg font-normal text-[#374151]">{ans}</span>
 
                 </div>
               );
@@ -289,18 +292,18 @@ const TestMode = () => {
         })}
       >
         <CardContent className="p-0 space-y-6 font-sans">
-          <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase tracking-widest">
+          <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
             <span>Câu hỏi {qIdx + 1} &middot; Đúng / Sai</span>
           </div>
 
           <div className="flex flex-col md:flex-row gap-6 border-b pb-4">
             <div className="flex-1 md:border-r pr-6 space-y-2">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block">Thuật ngữ</span>
-              <div className="text-xl font-bold leading-relaxed">{q.term}</div>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block">Thuật ngữ</span>
+              <div className="text-base sm:text-lg font-normal text-[#374151] whitespace-pre-wrap leading-relaxed">{q.term}</div>
             </div>
             <div className="flex-1 space-y-2">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block">Định nghĩa</span>
-              <div className="text-xl font-bold leading-relaxed">{q.answer}</div>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block">Định nghĩa</span>
+              <div className="text-base sm:text-lg font-normal text-[#374151] whitespace-pre-wrap leading-relaxed">{q.answer}</div>
             </div>
           </div>
 
@@ -315,11 +318,11 @@ const TestMode = () => {
               const isSelected = uAns === option;
               const isCorrectOption = option === correctAns;
 
-              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border border-[#d9dde8] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer flex-1";
+              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border border-[#d9dde8] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer flex-1 font-normal text-[#374151]";
               let iconToShow = null;
 
               if (isSelected && !isTestFinished) {
-                cardStyles = "border-2 border-[#282e3e] dark:border-slate-300 bg-[#f6f7fb] dark:bg-slate-800/60 text-[#282e3e] dark:text-white flex-1 font-bold";
+                cardStyles = "border border-[#4255ff] bg-[#edefff] text-[#374151] flex-1 font-normal";
               }
 
               if (isTestFinished) {
@@ -378,11 +381,11 @@ const TestMode = () => {
         })}
       >
         <CardContent className="p-0 space-y-4 font-sans">
-          <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase tracking-widest">
+          <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
             <span>Câu hỏi {qIdx + 1} &middot; Tự luận</span>
           </div>
 
-          <div className="text-xl font-bold leading-relaxed">{q.term}</div>
+          <div className="text-base sm:text-lg font-normal text-[#374151] whitespace-pre-wrap leading-relaxed">{q.term}</div>
 
           {isTestFinished && (
             <div className={cn("text-sm font-extrabold", isCorrect ? "text-green-600" : "text-orange-600")}>
@@ -568,79 +571,75 @@ const TestMode = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* COMPONENT A: MAIN HEADER */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border py-4 font-sans select-none shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsDrawerOpen(true)}
-              className="md:hidden p-2 text-[#939bb4] hover:bg-muted rounded-xl transition-all active:scale-95"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
-            <button
-              onClick={backToStudySet}
-              className="hidden md:block p-2 hover:bg-muted rounded-xl transition-all active:scale-95"
-              title="Quay lại học phần"
-            >
-              <span className="text-lg">←</span>
-            </button>
-            <div className="space-y-0.5">
-              <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest block">
-                Bài kiểm tra
-              </span>
-              <h2 className="text-sm sm:text-lg font-extrabold text-foreground tracking-tight max-w-[150px] sm:max-w-md truncate">
-                {studySet.title}
-              </h2>
-            </div>
-          </div>
-
-          {isTestFinished && (
-            <div className="hidden sm:flex items-center justify-center bg-secondary px-4 py-1.5 rounded-full text-xs sm:text-sm font-extrabold text-foreground border">
-              {testResults.correct} / {questions.length} câu &middot; {testResults.percentage}%
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
-            {!isTestFinished ? (
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 font-sans select-none shadow-sm flex flex-col">
+        <div className="max-w-7xl mx-auto px-4 w-full h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1">
+            {isTestFinished ? (
               <>
                 <button
-                  onClick={() => {
-                    const submitBtn = document.getElementById("submit-test-btn");
-                    if (submitBtn) {
-                      submitBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }
-                  }}
-                  className="hidden sm:inline-flex bg-white hover:bg-[#edeff4] text-[#282e3e] border border-[#d9dde8] rounded-xl font-bold px-4 py-2 text-sm transition-all shadow-sm h-9 items-center justify-center"
+                  onClick={backToStudySet}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-all active:scale-95 text-gray-600"
+                  title="Quay lại học phần"
                 >
-                  Gửi bài kiểm tra
+                  <span className="text-lg">←</span>
                 </button>
+                <div className="space-y-0.5 hidden sm:block">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">
+                    Bài kiểm tra
+                  </span>
+                  <h2 className="text-sm font-bold text-gray-900 tracking-tight uppercase truncate max-w-[150px] sm:max-w-xs">
+                    {studySet.title}
+                  </h2>
+                </div>
+              </>
+            ) : (
+              <div className="w-8 h-8" />
+            )}
+          </div>
+
+          <div className="flex-1 flex justify-center items-center">
+            {isTestFinished ? (
+              <div className="flex items-center justify-center bg-gray-100 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold text-gray-800">
+                {testResults.correct} / {totalQuestions} câu &middot; {testResults.percentage}%
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-bold text-gray-800">{answeredCount} / {totalQuestions}</span>
+                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider truncate max-w-[150px]">{studySet.title}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-1 justify-end">
+            {!isTestFinished ? (
+              <>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => typeof window !== "undefined" && window.print()}
-                  className="hidden sm:inline-flex rounded-xl font-bold gap-1.5 text-xs h-9 border"
+                  className="hidden sm:inline-flex rounded-xl font-medium gap-1.5 text-xs h-8 border-gray-200 text-gray-700"
                 >
                   In bài kiểm tra
                 </Button>
                 <button
                   onClick={() => setIsSettingsOpen(true)}
-                  className="p-2 bg-secondary hover:bg-secondary/80 text-foreground border rounded-xl transition-all active:scale-95 flex items-center justify-center w-9 h-9"
+                  className="p-2 bg-white hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-xl transition-all active:scale-95 flex items-center justify-center w-8 h-8"
                   title="Thiết lập bài kiểm tra"
                 >
-                  <Settings size={18} />
+                  <Settings size={16} />
                 </button>
               </>
             ) : (
               <>
                 <button
                   onClick={handleRetryWrongQuestions}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary hover:bg-secondary/80 text-foreground border rounded-xl font-extrabold text-[11px] sm:text-xs transition-all active:scale-95 shadow-sm"
+                  className="hidden sm:block px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium text-xs transition-all active:scale-95"
                 >
                   Hỏi lại thuật ngữ sai
                 </button>
                 <button
                   onClick={handleRestartTest}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-extrabold text-[11px] sm:text-xs transition-all active:scale-95 shadow-md border border-blue-400"
+                  className="px-3 py-1.5 bg-[#4255ff] hover:bg-blue-700 text-white rounded-lg font-medium text-xs transition-all active:scale-95 shadow-sm"
                 >
                   Làm bài kiểm tra mới
                 </button>
@@ -649,13 +648,23 @@ const TestMode = () => {
 
             <button
               onClick={backToStudySet}
-              className="p-2 hover:bg-muted text-muted-foreground rounded-xl transition-all active:scale-95 ml-1"
+              className="p-2 hover:bg-gray-100 text-gray-500 rounded-xl transition-all active:scale-95 ml-1"
               title="Đóng chế độ kiểm tra"
             >
-              <X size={20} className="stroke-[3]" />
+              <X size={20} className="stroke-[2.5]" />
             </button>
           </div>
         </div>
+
+        {/* Progress Bar under Topbar */}
+        {!isTestFinished && (
+          <div className="h-1 w-full bg-gray-100">
+            <div
+              className="h-full bg-[#7583ff] transition-all duration-300"
+              style={{ width: `${totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0}%` }}
+            />
+          </div>
+        )}
       </div>
 
       {/* MOBILE DRAWER OVERLAY */}
@@ -722,53 +731,47 @@ const TestMode = () => {
 
       {/* BODY LAYOUT */}
       <div className="flex gap-8 max-w-7xl mx-auto px-4 py-8 font-sans relative">
-        {/* COMPONENT B: SIDEBAR ĐIỀU HƯỚNG */}
-        <div className="hidden md:block w-64 flex-shrink-0 sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto border-r border-border pr-4 scrollbar-thin select-none">
-          <div className="space-y-4">
-            <h3 className="font-extrabold text-xs uppercase tracking-wider text-muted-foreground">
-              {isTestFinished ? "Kết quả bài làm" : "Danh sách câu hỏi"}
-            </h3>
-            <div className="grid grid-cols-4 gap-2">
-              {questions.map((q, idx) => {
-                const hasAnswer = userAnswers[idx] !== undefined;
-                const isCorrect = isTestFinished ? checkAnswerIsCorrect(q, userAnswers[idx]) : false;
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      document.getElementById("question-" + idx)?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                    }}
-                    className={cn(
-                      "w-10 h-10 rounded-xl font-bold flex items-center justify-center transition-all text-xs border cursor-pointer active:scale-90",
-                      isTestFinished
-                        ? isCorrect
-                          ? "bg-green-500 border-green-500 text-white shadow-sm"
-                          : "bg-orange-500 border-orange-500 text-white shadow-sm"
-                        : hasAnswer
-                          ? "bg-blue-50 dark:bg-blue-950/40 border-blue-300 text-blue-600 font-extrabold"
-                          : "bg-secondary hover:bg-secondary/80 border-border text-foreground"
-                    )}
-                    title={`Đi đến câu hỏi ${idx + 1}`}
-                  >
-                    {isTestFinished ? (
-                      isCorrect ? (
-                        <Check size={14} className="stroke-[3]" />
-                      ) : (
-                        <X size={14} className="stroke-[3]" />
-                      )
-                    ) : (
-                      idx + 1
-                    )}
-                  </button>
-                );
-              })}
+        {/* COMPONENT B: KẾT QUẢ BÀI LÀM (Chỉ hiện khi nộp xong) */}
+        {isTestFinished && (
+          <div className="hidden md:block w-72 flex-shrink-0 sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto pr-4 select-none">
+            <div className="space-y-4">
+              <h3 className="font-bold text-sm text-gray-800 uppercase tracking-wider">
+                Kết quả bài làm
+              </h3>
+              <div className="grid grid-cols-4 gap-3">
+                {questions.map((q, idx) => {
+                  const isCorrect = checkAnswerIsCorrect(q, userAnswers[idx]);
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        document.getElementById("question-" + idx)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }}
+                      className={cn(
+                        "rounded-lg flex items-center justify-center py-2 px-1 font-medium text-[13px] transition-all active:scale-95 text-white gap-1",
+                        isCorrect ? "bg-green-500" : "bg-orange-500"
+                      )}
+                    >
+                      <span>{idx + 1}</span> {isCorrect ? <Check size={14} className="stroke-[4] flex-shrink-0" /> : <X size={14} className="stroke-[4] flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* FLOATING MENU BUTTON (Khi đang làm bài) */}
+        {!isTestFinished && (
+          <div className="hidden md:flex flex-col sticky top-24 h-fit">
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="w-12 h-12 rounded-full bg-white border border-[#939bb4] text-[#939bb4] flex items-center justify-center shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+          </div>
+        )}
 
         {/* CỘT CÂU HỎI CUỘN DỌC */}
         <div className="flex-1 max-w-3xl mx-auto space-y-6">
@@ -799,18 +802,27 @@ const TestMode = () => {
           {/* Nút gửi bài kiểm tra nằm dưới cùng danh sách câu hỏi */}
           {!isTestFinished && questions.length > 0 && (
             <div className="pt-10 pb-16 flex justify-center">
-              <Button
+              <button
                 id="submit-test-btn"
                 onClick={handleSubmitTest}
-                size="lg"
-                className="bg-[#4255ff] hover:bg-blue-700 text-white font-bold text-lg px-12 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all active:scale-95"
+                className="bg-[#4255ff] text-white py-3 px-8 rounded-full font-bold text-lg shadow hover:bg-blue-700 transition-all active:scale-95"
               >
                 Gửi bài kiểm tra
-              </Button>
+              </button>
             </div>
           )}
         </div>
       </div>
+      
+      {/* Mobile Floating Menu Button (chỉ hiện khi đang làm bài) */}
+      {!isTestFinished && (
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="md:hidden fixed bottom-6 left-4 z-40 w-12 h-12 rounded-full bg-white border border-[#939bb4] text-[#939bb4] flex items-center justify-center shadow-lg hover:bg-gray-50 transition-all active:scale-95"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        </button>
+      )}
 
       <TestSettingsDialog
         open={isSettingsOpen}
