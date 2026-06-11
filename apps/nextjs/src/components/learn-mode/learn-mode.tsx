@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { RotateCcw, Undo2, Star, FileText, RotateCw } from "lucide-react";
 
@@ -19,6 +19,11 @@ import WrittenCard from "../shared/written-card";
 import LearnOptionsDialog, { type LearnConfig } from "./learn-options-dialog";
 import { useTranslation } from "~/contexts/i18n-context";
 import TestSettingsDialog from "../shared/test-settings-dialog";
+import LearnProgressBar from "./learn-progress-bar";
+import SegmentEndScreen from "./segment-end-screen";
+
+// Số câu hỏi mỗi đoạn (segment)
+const SEGMENT_SIZE = 7;
 
 const defaultConfig: LearnConfig = {
   shuffle: false,
@@ -73,19 +78,71 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }
   }, [id]);
 
+  // ─── Existing states ───
   const [sessionCards, setSessionCards] = useState<typeof flashcards>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [userAnswer, setUserAnswer] = useState<string | undefined>();
   const [isCompleted, setIsCompleted] = useState(false);
   const [isTestSettingsOpen, setIsTestSettingsOpen] = useState(false);
-
-  // Written Mode state
   const [writtenInput, setWrittenInput] = useState("");
-
-  // Flashcards Mode state
   const [isFlipped, setIsFlipped] = useState(false);
 
+  // ─── NEW: Segment & Streak states ───
+  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
+  const [globalStreak, setGlobalStreak] = useState(0);
+  const [currentSegment, setCurrentSegment] = useState(0);
+  const [isSegmentLocked, setIsSegmentLocked] = useState(false);
+  const [wrongQuestionsList, setWrongQuestionsList] = useState<typeof flashcards>([]);
+  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [reviewIndex, setReviewIndex] = useState(0);
+  const [showSegmentEnd, setShowSegmentEnd] = useState(false);
+  const [segmentWrongIds, setSegmentWrongIds] = useState<Set<number>>(new Set());
+  const [progressFlashRed, setProgressFlashRed] = useState(false);
+  const [awaitingContinue, setAwaitingContinue] = useState(false);
+
+  // ─── Computed values ───
+  const activeMode = config.questionTypes.mc
+    ? "mc"
+    : config.questionTypes.written
+      ? "written"
+      : "flashcards";
+
+  const totalSegments = Math.ceil(sessionCards.length / SEGMENT_SIZE);
+  const segmentStart = currentSegment * SEGMENT_SIZE;
+  const segmentEnd = Math.min(segmentStart + SEGMENT_SIZE, sessionCards.length);
+  const isStreakActive = globalStreak >= 5 && !isSegmentLocked;
+
+  // Card hiện tại phụ thuộc vào review mode
+  const currentCard = isReviewMode
+    ? wrongQuestionsList[reviewIndex]
+    : sessionCards[currentIndex];
+
+  const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
+
+  // ─── Âm thanh trả lời đúng (Web Audio API - không cần file mp3) ───
+  const playCorrectSound = useCallback(() => {
+    if (!config.soundEffects) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = "sine";
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.25);
+    } catch (e) {
+      /* ignore audio errors */
+    }
+  }, [config.soundEffects]);
+
+  // ─── Reset progress ───
   const handleResetProgress = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(`study_progress_learned_${id}`);
@@ -93,7 +150,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     restart();
   };
 
-  // Initialize session cards
+  // ─── Initialize / restart ───
   const restart = (currentConfig = config) => {
     let cards = [...flashcards];
 
@@ -114,7 +171,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
       if (currentConfig.shuffle) {
         cards.sort(() => Math.random() - 0.5);
       }
-      
+
       const nextConfig = { ...currentConfig, starredOnly: false };
       if (typeof window !== "undefined") {
         localStorage.setItem(`quizlet_learn_config_${id}`, JSON.stringify(nextConfig));
@@ -126,10 +183,10 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     cards = cards.map((card) => {
       // Kiểm tra xem thẻ ghi nhớ có phải là trắc nghiệm tự soạn (dạng A. B. C. D. trong term) hay không
       const extractMultipleChoice = (text: string) => {
-        const regexA = /(?:^|\n)\s*([A|a][\.\)\-:\s]+[^\n]+)/;
-        const regexB = /(?:^|\n)\s*([B|b][\.\)\-:\s]+[^\n]+)/;
-        const regexC = /(?:^|\n)\s*([C|c][\.\)\-:\s]+[^\n]+)/;
-        const regexD = /(?:^|\n)\s*([D|d][\.\)\-:\s]+[^\n]+)/;
+        const regexA = /(?:^|\n)\s*([A|a][.\)\-:\s]+[^\n]+)/;
+        const regexB = /(?:^|\n)\s*([B|b][.\)\-:\s]+[^\n]+)/;
+        const regexC = /(?:^|\n)\s*([C|c][.\)\-:\s]+[^\n]+)/;
+        const regexD = /(?:^|\n)\s*([D|d][.\)\-:\s]+[^\n]+)/;
 
         const a = text.match(regexA)?.[1]?.trim();
         const b = text.match(regexB)?.[1]?.trim();
@@ -144,7 +201,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
       const cleanText = (str: string) => {
         return str
-          .replace(/^[a-zA-Z][\.\)\-:\s]+/, "")
+          .replace(/^[a-zA-Z][.\)\-:\s]+/, "")
           .trim()
           .toLowerCase();
       };
@@ -183,7 +240,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
         // Trắc nghiệm tự tạo ở client dựa trên config.answerWith
         const isAnswerWithTerm = currentConfig.answerWith === "term";
         const correctAnswer = isAnswerWithTerm ? card.term : card.definition;
-        
+
         const falseAnswers = flashcards
           .filter((c) => c.id !== card.id)
           .map((c) => (isAnswerWithTerm ? c.term : c.definition))
@@ -210,12 +267,26 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     setIsCompleted(false);
     setWrittenInput("");
     setIsFlipped(false);
+
+    // Reset segment states
+    setCorrectAnswersCount(0);
+    setGlobalStreak(0);
+    setCurrentSegment(0);
+    setIsSegmentLocked(false);
+    setWrongQuestionsList([]);
+    setIsReviewMode(false);
+    setReviewIndex(0);
+    setShowSegmentEnd(false);
+    setSegmentWrongIds(new Set());
+    setAwaitingContinue(false);
+    setProgressFlashRed(false);
   };
 
   useEffect(() => {
     if (flashcards.length > 0) {
       restart(config);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flashcards, config.shuffle, config.starredOnly, config.answerWith]);
 
   // Cập nhật tiến độ học tập thực tế vào localStorage
@@ -234,23 +305,208 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }
   }, [isCompleted, sessionCards.length, id]);
 
-  // Determine active mode based on config priority: MC -> Written -> Flashcards
-  const activeMode = config.questionTypes.mc 
-    ? "mc" 
-    : config.questionTypes.written 
-      ? "written" 
-      : "flashcards";
+  // ─── Refs cho keyboard handler (tránh stale closures) ───
+  const handlersRef = useRef({
+    continueToNextSegment: () => {},
+    continueAfterWrongMC: () => {},
+    continueWritten: () => {},
+  });
 
-  // Bắt phím bất kỳ để tiếp tục trong chế độ tự luận khi trả lời sai hoặc bỏ qua
+  // ─── checkSegmentEnd helper ───
+  function checkSegmentEnd(
+    nextIndex: number,
+    streak: number,
+    locked: boolean,
+    wrongList: typeof flashcards
+  ) {
+    const segEnd = Math.min((currentSegment + 1) * SEGMENT_SIZE, sessionCards.length);
+
+    if (nextIndex >= sessionCards.length) {
+      // Hết tất cả cards
+      if (wrongList.length > 0) {
+        setIsReviewMode(true);
+        setReviewIndex(0);
+      } else {
+        setShowSegmentEnd(true);
+      }
+    } else if (nextIndex >= segEnd) {
+      // Hết segment hiện tại
+      if (!locked && streak >= 5) {
+        // Bypass - tiếp tục liền mạch sang segment tiếp
+        setCurrentSegment((prev) => prev + 1);
+        setIsSegmentLocked(false);
+        setWrongQuestionsList([]);
+        setSegmentWrongIds(new Set());
+      } else if (wrongList.length > 0) {
+        // Vào review mode
+        setIsReviewMode(true);
+        setReviewIndex(0);
+      } else {
+        // Không có câu sai nhưng streak < 5 → hiện end screen
+        setShowSegmentEnd(true);
+      }
+    }
+    // else: tiếp tục bình thường (câu tiếp theo trong segment)
+  }
+
+  // ─── MC: handleAnswerSelect (segment + streak + review) ───
+  const handleAnswerSelect = (idx: number, _event: React.MouseEvent<HTMLDivElement>) => {
+    if (userAnswer || awaitingContinue) return;
+
+    const card = isReviewMode
+      ? wrongQuestionsList[reviewIndex]
+      : sessionCards[currentIndex];
+    if (!card) return;
+
+    const selected = (card.answers || [])[idx];
+    if (!selected) return;
+    setUserAnswer(selected);
+
+    const isCorrect = selected === card.definition;
+
+    if (isReviewMode) {
+      // ─── REVIEW MODE ───
+      if (isCorrect) {
+        playCorrectSound();
+        setCorrectAnswersCount((prev) => prev + 1);
+        // Loại bỏ câu đúng khỏi danh sách ôn tập
+        const newList = wrongQuestionsList.filter((_, i) => i !== reviewIndex);
+
+        setTimeout(() => {
+          setUserAnswer(undefined);
+          setWrongQuestionsList(newList);
+          if (newList.length === 0) {
+            setIsReviewMode(false);
+            setShowSegmentEnd(true);
+          } else {
+            setReviewIndex((prev) => (prev >= newList.length ? 0 : prev));
+          }
+        }, 800);
+      } else {
+        // Sai trong review → chờ user bấm "Tiếp tục", rồi hiện lại câu này
+        setAwaitingContinue(true);
+      }
+    } else {
+      // ─── NORMAL MODE (lần thử đầu) ───
+      if (isCorrect) {
+        playCorrectSound();
+        setCorrectAnswersCount((prev) => prev + 1);
+        setCorrectCount((prev) => prev + 1);
+        const newStreak = globalStreak + 1;
+        setGlobalStreak(newStreak);
+
+        setTimeout(() => {
+          setUserAnswer(undefined);
+          const nextIndex = currentIndex + 1;
+          setCurrentIndex(nextIndex);
+          checkSegmentEnd(nextIndex, newStreak, isSegmentLocked, wrongQuestionsList);
+        }, 800);
+      } else {
+        // Sai → theo dõi câu sai, reset streak
+        setGlobalStreak(0);
+        setIsSegmentLocked(true);
+        const newWrongList = [...wrongQuestionsList, card];
+        setWrongQuestionsList(newWrongList);
+        setSegmentWrongIds((prev) => new Set([...prev, card.id]));
+
+        // Flash đỏ thanh progress bar
+        setProgressFlashRed(true);
+        setTimeout(() => setProgressFlashRed(false), 500);
+
+        // Chờ user bấm "Tiếp tục"
+        setAwaitingContinue(true);
+      }
+    }
+  };
+
+  // ─── MC: Continue sau khi trả lời sai ───
+  function handleContinueAfterWrongMC() {
+    setUserAnswer(undefined);
+    setAwaitingContinue(false);
+
+    if (isReviewMode) {
+      // Giữ nguyên câu hiện tại (user sẽ thử lại)
+      return;
+    }
+
+    // Advance tới câu tiếp
+    const nextIndex = currentIndex + 1;
+    setCurrentIndex(nextIndex);
+    checkSegmentEnd(nextIndex, globalStreak, isSegmentLocked, wrongQuestionsList);
+  }
+
+  // ─── Chuyển sang segment tiếp theo (từ end screen) ───
+  function handleContinueToNextSegment() {
+    setShowSegmentEnd(false);
+
+    const nextSegStart = (currentSegment + 1) * SEGMENT_SIZE;
+
+    if (nextSegStart >= sessionCards.length) {
+      // Hết tất cả segment → hiện final completion
+      setIsCompleted(true);
+      return;
+    }
+
+    setCurrentSegment((prev) => prev + 1);
+    setCurrentIndex(nextSegStart);
+
+    // Reset states cho segment mới (giữ correctAnswersCount & globalStreak)
+    setIsSegmentLocked(false);
+    setWrongQuestionsList([]);
+    setIsReviewMode(false);
+    setReviewIndex(0);
+    setSegmentWrongIds(new Set());
+    setAwaitingContinue(false);
+  }
+
+  // ─── Cập nhật refs cho keyboard handler ───
+  handlersRef.current.continueToNextSegment = handleContinueToNextSegment;
+  handlersRef.current.continueAfterWrongMC = handleContinueAfterWrongMC;
+
+  // ─── Written/Flashcard: handleContinue (giữ nguyên logic cũ) ───
+  function handleContinue() {
+    setUserAnswer(undefined);
+    setWrittenInput("");
+    if (currentIndex + 1 >= sessionCards.length) {
+      setIsCompleted(true);
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  }
+
+  handlersRef.current.continueWritten = handleContinue;
+
+  // ─── Keyboard handler (hợp nhất tất cả trường hợp) ───
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Không xử lý khi đang focus input
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      // 1. Segment end screen → tiếp tục
+      if (showSegmentEnd) {
+        e.preventDefault();
+        handlersRef.current.continueToNextSegment();
+        return;
+      }
+
+      // 2. Chờ bấm tiếp tục sau khi sai MC → tiếp tục
+      if (awaitingContinue) {
+        e.preventDefault();
+        handlersRef.current.continueAfterWrongMC();
+        return;
+      }
+
+      // 3. Written mode: bấm phím khi đã trả lời sai → tiếp tục
       if (activeMode === "written" && userAnswer !== undefined) {
         const card = sessionCards[currentIndex];
         if (card) {
-          const isCorrect = (userAnswer || "").trim().toLowerCase() === (card.definition || "").trim().toLowerCase();
+          const isCorrect =
+            (userAnswer || "").trim().toLowerCase() ===
+            (card.definition || "").trim().toLowerCase();
           if (!isCorrect) {
             e.preventDefault();
-            handleContinue();
+            handlersRef.current.continueWritten();
           }
         }
       }
@@ -260,7 +516,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [activeMode, userAnswer, currentIndex, sessionCards]);
+  }, [showSegmentEnd, awaitingContinue, activeMode, userAnswer, currentIndex, sessionCards]);
 
   const saveConfig = (newConfig: LearnConfig) => {
     setConfig(newConfig);
@@ -272,7 +528,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
   const handleToggleQuestionType = (type: "mc" | "written" | "flashcards", val: boolean) => {
     const nextQuestionTypes = { ...config.questionTypes, [type]: val };
-    
+
     // Ensure at least one type is active
     if (!nextQuestionTypes.mc && !nextQuestionTypes.written && !nextQuestionTypes.flashcards) {
       nextQuestionTypes.mc = true;
@@ -285,49 +541,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     }
   };
 
-  const handleAnswerSelect = (idx: number, event: React.MouseEvent<HTMLDivElement>) => {
-    if (userAnswer) return;
-    const card = sessionCards[currentIndex];
-    if (!card) return;
-
-    const button = event.currentTarget;
-    const selected = card.answers[idx];
-    setUserAnswer(selected);
-
-    const isCorrect = selected === card.definition;
-
-    if (isCorrect) {
-      button.style.background = "#bbf7d0";
-      button.style.borderColor = "#16a34a";
-      setCorrectCount((prev) => prev + 1);
-    } else {
-      button.style.background = "#fda4af";
-      button.style.borderColor = "#e11d48";
-    }
-
-    setTimeout(() => {
-      button.style.background = "hsla(var(--background))";
-      button.style.borderColor = "hsla(var(--input))";
-      
-      setUserAnswer(undefined);
-      if (currentIndex + 1 >= sessionCards.length) {
-        setIsCompleted(true);
-      } else {
-        setCurrentIndex((prev) => prev + 1);
-      }
-    }, 1200);
-  };
-
-  function handleContinue() {
-    setUserAnswer(undefined);
-    setWrittenInput("");
-    if (currentIndex + 1 >= sessionCards.length) {
-      setIsCompleted(true);
-    } else {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  }
-
+  // ─── Written mode handlers ───
   const handleWrittenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (userAnswer || !writtenInput.trim()) return;
@@ -341,6 +555,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
     if (isCorrect) {
       setCorrectCount((prev) => prev + 1);
+      setCorrectAnswersCount((prev) => prev + 1);
       setTimeout(() => {
         handleContinue();
       }, 1000);
@@ -354,12 +569,15 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
   const handleOverrideCorrect = () => {
     setCorrectCount((prev) => prev + 1);
+    setCorrectAnswersCount((prev) => prev + 1);
     handleContinue();
   };
 
+  // ─── Flashcard mode handlers ───
   const handleFlashcardFeedback = (know: boolean) => {
     if (know) {
       setCorrectCount((prev) => prev + 1);
+      setCorrectAnswersCount((prev) => prev + 1);
     }
     setIsFlipped(false);
     if (currentIndex + 1 >= sessionCards.length) {
@@ -373,11 +591,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     router.push(`/study-sets/${id}`);
   };
 
-  const currentCard = sessionCards[currentIndex];
-  const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
-
-
-
+  // ─── Loading state ───
   if (!isMounted) {
     return (
       <div className="flex items-center justify-center min-h-[300px] text-muted-foreground font-bold font-sans">
@@ -386,29 +600,63 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     );
   }
 
+  // ─── Render ───
   return (
     <div className="grid gap-6 md:grid-cols-4 select-none pb-12">
       {/* Main column */}
       <div className="md:col-span-3 space-y-4">
-        {/* Progress bar */}
-        <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 mb-6">
-          <div 
-            className="h-full bg-[#10b981] rounded-full transition-all duration-500" 
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        {/* Progress bar (phân đoạn) */}
+        <LearnProgressBar
+          correctAnswersCount={correctAnswersCount}
+          totalCards={sessionCards.length}
+          totalSegments={totalSegments}
+          isFlashRed={progressFlashRed}
+          isStreakActive={isStreakActive}
+        />
 
-        {currentCard && !isCompleted && (
+        {/* ─── Segment End Screen ─── */}
+        {showSegmentEnd && !isCompleted && (
+          <SegmentEndScreen
+            segmentCards={sessionCards.slice(segmentStart, segmentEnd)}
+            wrongIds={segmentWrongIds}
+            correctAnswersCount={correctAnswersCount}
+            totalCards={sessionCards.length}
+            onContinue={handleContinueToNextSegment}
+            session={session}
+            isLastSegment={(currentSegment + 1) * SEGMENT_SIZE >= sessionCards.length}
+          />
+        )}
+
+        {/* ─── Question Cards ─── */}
+        {!showSegmentEnd && currentCard && !isCompleted && (
           <>
             {activeMode === "mc" && (
-              <MultipleChoiceCard
-                term={config.answerWith === "term" ? currentCard.definition : currentCard.term}
-                answers={currentCard.answers}
-                index={currentIndex}
-                callback={handleAnswerSelect}
-                definition={config.answerWith === "term" ? currentCard.term : currentCard.definition}
-                userAnswer={userAnswer}
-              />
+              <>
+                <MultipleChoiceCard
+                  term={config.answerWith === "term" ? currentCard.definition : currentCard.term}
+                  answers={currentCard.answers}
+                  index={isReviewMode ? reviewIndex : currentIndex}
+                  callback={handleAnswerSelect}
+                  definition={config.answerWith === "term" ? currentCard.term : currentCard.definition}
+                  userAnswer={userAnswer}
+                  isReviewMode={isReviewMode}
+                />
+
+                {/* Continue bar sau khi trả lời sai */}
+                {awaitingContinue && (
+                  <div className="flex items-center justify-between bg-card border-2 rounded-2xl p-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <span className="text-sm text-muted-foreground">
+                      Nhấp vào câu trả lời đúng hoặc nhấn phím bất kỳ để tiếp tục
+                    </span>
+                    <Button
+                      onClick={handleContinueAfterWrongMC}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 transition-all active:scale-[0.98]"
+                    >
+                      Tiếp tục
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
 
             {activeMode === "written" && (
@@ -427,8 +675,8 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
             {activeMode === "flashcards" && (
               <div className="space-y-6">
-                <Card 
-                  onClick={() => setIsFlipped(!isFlipped)} 
+                <Card
+                  onClick={() => setIsFlipped(!isFlipped)}
                   className="cursor-pointer min-h-[320px] flex items-center justify-center p-6 bg-card border-2 hover:shadow-md transition-all rounded-2xl relative overflow-hidden"
                 >
                   <div className="text-center space-y-4 w-full">
@@ -436,8 +684,8 @@ const LearnMode = ({ session }: { session: Session | null }) => {
                       {isFlipped ? "Định nghĩa" : "Thuật ngữ"}
                     </div>
                     <div className="text-2xl sm:text-3xl whitespace-pre-wrap font-sans leading-relaxed px-4 max-h-[220px] overflow-y-auto">
-                      {isFlipped 
-                        ? (config.answerWith === "term" ? currentCard.term : currentCard.definition) 
+                      {isFlipped
+                        ? (config.answerWith === "term" ? currentCard.term : currentCard.definition)
                         : (config.answerWith === "term" ? currentCard.definition : currentCard.term)
                       }
                     </div>
@@ -466,6 +714,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
           </>
         )}
 
+        {/* ─── Final Completion Screen ─── */}
         {isCompleted && (
           <>
             <div className="mb-6 text-center space-y-2 font-sans">
