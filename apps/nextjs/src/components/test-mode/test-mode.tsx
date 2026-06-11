@@ -55,6 +55,7 @@ const TestMode = () => {
   const [writtenInputs, setWrittenInputs] = useState<Record<number, string>>({});
 
   const [isTestFinished, setIsTestFinished] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [timeStart, setTimeStart] = useState<number>(0);
   const [testResults, setTestResults] = useState({
     correct: 0,
@@ -100,7 +101,7 @@ const TestMode = () => {
     return false;
   };
 
-  // Logic 1: Chọn đáp án & Auto-Scroll
+  // Logic 1: Chọn đáp án & Auto-Scroll (KHÔNG nộp bài tự động)
   const handleAnswerSelect = (questionIndex: number, answerValue: string) => {
     if (isTestFinished) return;
 
@@ -109,43 +110,47 @@ const TestMode = () => {
 
     const isLastQuestion = Object.keys(nextAnswers).length === questions.length;
 
-    if (isLastQuestion) {
-      // Đã trả lời hết tất cả câu hỏi
-      setTimeout(() => {
-        let correctCount = 0;
-        questions.forEach((q, idx) => {
-          if (checkAnswerIsCorrect(q, nextAnswers[idx])) {
-            correctCount++;
-          }
-        });
-
-        const total = questions.length;
-        const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-        const elapsedMs = Date.now() - timeStart;
-        const seconds = Math.floor(elapsedMs / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const displayTime = minutes > 0 ? `${minutes} phút ${seconds % 60} giây` : `${seconds} giây`;
-
-        setTestResults({
-          correct: correctCount,
-          incorrect: total - correctCount,
-          percentage,
-          timeTaken: displayTime,
-        });
-        setIsTestFinished(true);
-
-        // Cuộn mượt lên đầu trang
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }, 500);
-    } else {
-      // Cuộn mượt xuống câu tiếp theo sau độ trễ nhẹ
-      setTimeout(() => {
-        const nextElem = document.getElementById("question-" + (questionIndex + 1));
-        if (nextElem) {
-          nextElem.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Cuộn mượt xuống câu tiếp theo sau độ trễ nhẹ
+    setTimeout(() => {
+      const nextElem = document.getElementById("question-" + (questionIndex + 1));
+      if (nextElem) {
+        nextElem.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (isLastQuestion) {
+        const submitBtn = document.getElementById("submit-test-btn");
+        if (submitBtn) {
+          submitBtn.scrollIntoView({ behavior: "smooth", block: "center" });
         }
-      }, 350);
-    }
+      }
+    }, 350);
+  };
+
+  // Logic 1.5: Gửi bài kiểm tra
+  const handleSubmitTest = () => {
+    let correctCount = 0;
+    questions.forEach((q, idx) => {
+      if (checkAnswerIsCorrect(q, userAnswers[idx])) {
+        correctCount++;
+      }
+    });
+
+    const total = questions.length;
+    const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    const elapsedMs = Date.now() - timeStart;
+    const seconds = Math.floor(elapsedMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const displayTime = minutes > 0 ? `${minutes} phút ${seconds % 60} giây` : `${seconds} giây`;
+
+    setTestResults({
+      correct: correctCount,
+      incorrect: total - correctCount,
+      percentage,
+      timeTaken: displayTime,
+    });
+    setIsTestFinished(true);
+    setIsDrawerOpen(false);
+
+    // Cuộn mượt lên đầu trang
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Logic 2: Khởi tạo lại bài kiểm tra mới
@@ -216,22 +221,22 @@ const TestMode = () => {
               const isSelected = uAns === ans;
               const isCorrectAns = ans === q.definition;
 
-              let cardStyles = "border border-border hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer";
+              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border border-[#d9dde8] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer text-base";
               let iconToShow = null;
 
               if (isSelected && !isTestFinished) {
-                cardStyles = "border-2 border-blue-600 bg-blue-600/10 text-blue-700 dark:text-blue-300";
+                cardStyles = "border-2 border-[#282e3e] dark:border-slate-300 bg-[#f6f7fb] dark:bg-slate-800/60 text-[#282e3e] dark:text-white text-base font-bold";
               }
 
               if (isTestFinished) {
                 if (isSelected && !isCorrectAns) {
-                  cardStyles = "border border-orange-500 text-orange-600 bg-white dark:bg-slate-900 pointer-events-none";
+                  cardStyles = "border border-orange-500 text-orange-600 bg-white dark:bg-slate-900 pointer-events-none text-base";
                   iconToShow = <span className="text-orange-500 font-extrabold">✕</span>;
                 } else if (isCorrectAns) {
-                  cardStyles = "border-2 border-dashed border-green-500 text-green-700 bg-white dark:bg-slate-900 pointer-events-none";
+                  cardStyles = "border-2 border-dashed border-green-500 text-green-700 bg-white dark:bg-slate-900 pointer-events-none text-base";
                   iconToShow = <span className="text-green-600 font-extrabold">✓</span>;
                 } else {
-                  cardStyles = "opacity-50 pointer-events-none border border-border bg-slate-50 dark:bg-slate-800/20";
+                  cardStyles = "opacity-50 pointer-events-none border border-border bg-slate-50 dark:bg-slate-800/20 text-base";
                 }
               }
 
@@ -258,7 +263,8 @@ const TestMode = () => {
                   >
                     {iconToShow ? iconToShow : ansIdx + 1}
                   </span>
-                  <span className="text-sm">{ans}</span>
+                  <span className="text-base sm:text-lg">{ans}</span>
+
                 </div>
               );
             })}
@@ -309,11 +315,11 @@ const TestMode = () => {
               const isSelected = uAns === option;
               const isCorrectOption = option === correctAns;
 
-              let cardStyles = "border border-border hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer flex-1";
+              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border border-[#d9dde8] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer flex-1";
               let iconToShow = null;
 
               if (isSelected && !isTestFinished) {
-                cardStyles = "border-2 border-blue-600 bg-blue-600/10 text-blue-700 dark:text-blue-300 flex-1";
+                cardStyles = "border-2 border-[#282e3e] dark:border-slate-300 bg-[#f6f7fb] dark:bg-slate-800/60 text-[#282e3e] dark:text-white flex-1 font-bold";
               }
 
               if (isTestFinished) {
@@ -566,8 +572,14 @@ const TestMode = () => {
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="md:hidden p-2 text-[#939bb4] hover:bg-muted rounded-xl transition-all active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+            <button
               onClick={backToStudySet}
-              className="p-2 hover:bg-muted rounded-xl transition-all active:scale-95"
+              className="hidden md:block p-2 hover:bg-muted rounded-xl transition-all active:scale-95"
               title="Quay lại học phần"
             >
               <span className="text-lg">←</span>
@@ -591,6 +603,17 @@ const TestMode = () => {
           <div className="flex items-center gap-2">
             {!isTestFinished ? (
               <>
+                <button
+                  onClick={() => {
+                    const submitBtn = document.getElementById("submit-test-btn");
+                    if (submitBtn) {
+                      submitBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                  }}
+                  className="hidden sm:inline-flex bg-white hover:bg-[#edeff4] text-[#282e3e] border border-[#d9dde8] rounded-xl font-bold px-4 py-2 text-sm transition-all shadow-sm h-9 items-center justify-center"
+                >
+                  Gửi bài kiểm tra
+                </button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -629,9 +652,71 @@ const TestMode = () => {
               className="p-2 hover:bg-muted text-muted-foreground rounded-xl transition-all active:scale-95 ml-1"
               title="Đóng chế độ kiểm tra"
             >
-              <span className="text-base font-bold">✕</span>
+              <X size={20} className="stroke-[3]" />
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* MOBILE DRAWER OVERLAY */}
+      {isDrawerOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity"
+          onClick={() => setIsDrawerOpen(false)}
+        />
+      )}
+      
+      {/* MOBILE DRAWER CONTENT */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-72 bg-background border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out md:hidden flex flex-col",
+        isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="p-4 border-b flex justify-between items-center">
+           <h3 className="font-extrabold text-sm uppercase tracking-wider text-muted-foreground">
+             {isTestFinished ? "Kết quả bài làm" : "Danh sách câu hỏi"}
+           </h3>
+           <button onClick={() => setIsDrawerOpen(false)} className="p-2 text-muted-foreground hover:bg-muted rounded-xl">
+             <X size={20} />
+           </button>
+        </div>
+        <div className="p-4 overflow-y-auto flex-1 content-start space-y-4">
+           <div className="grid grid-cols-4 gap-2">
+             {questions.map((q, idx) => {
+                const hasAnswer = userAnswers[idx] !== undefined;
+                const isCorrect = isTestFinished ? checkAnswerIsCorrect(q, userAnswers[idx]) : false;
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setIsDrawerOpen(false);
+                      setTimeout(() => {
+                        document.getElementById("question-" + idx)?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                      }, 300);
+                    }}
+                    className={cn(
+                      "w-10 h-10 rounded-xl font-bold flex items-center justify-center transition-all text-xs border cursor-pointer active:scale-90",
+                      isTestFinished
+                        ? isCorrect
+                          ? "bg-green-500 border-green-500 text-white shadow-sm"
+                          : "bg-orange-500 border-orange-500 text-white shadow-sm"
+                        : hasAnswer
+                          ? "bg-blue-50 dark:bg-blue-950/40 border-blue-300 text-blue-600 font-extrabold"
+                          : "bg-secondary hover:bg-secondary/80 border-border text-foreground"
+                    )}
+                  >
+                    {isTestFinished ? (
+                      isCorrect ? <Check size={14} className="stroke-[3]" /> : <X size={14} className="stroke-[3]" />
+                    ) : (
+                      idx + 1
+                    )}
+                  </button>
+                );
+              })}
+           </div>
         </div>
       </div>
 
@@ -698,7 +783,7 @@ const TestMode = () => {
           )}
 
           {/* RENDER DANH SÁCH CÂU HỎI */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {questions.map((q, idx) => {
               if (q.type === "multipleChoice") {
                 return renderMultipleChoice(q, idx);
@@ -710,6 +795,20 @@ const TestMode = () => {
               return null;
             })}
           </div>
+
+          {/* Nút gửi bài kiểm tra nằm dưới cùng danh sách câu hỏi */}
+          {!isTestFinished && questions.length > 0 && (
+            <div className="pt-10 pb-16 flex justify-center">
+              <Button
+                id="submit-test-btn"
+                onClick={handleSubmitTest}
+                size="lg"
+                className="bg-[#4255ff] hover:bg-blue-700 text-white font-bold text-lg px-12 py-7 rounded-2xl shadow-xl hover:shadow-2xl transition-all active:scale-95"
+              >
+                Gửi bài kiểm tra
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
