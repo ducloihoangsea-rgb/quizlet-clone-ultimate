@@ -219,58 +219,67 @@ const TestMode = () => {
             </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 mt-8">
             {(q.answers || []).map((ans: string, ansIdx: number) => {
               const isSelected = uAns === ans;
               const isCorrectAns = ans === q.definition;
 
-              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border border-[#d9dde8] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer text-base font-normal text-[#374151]";
+              let cardStyles = "bg-[#f6f7fb] dark:bg-slate-800/40 border-2 border-[#e8eaf2] dark:border-slate-700 hover:bg-[#edeff4] dark:hover:bg-slate-700 cursor-pointer text-base font-normal text-[#374151]";
               let iconToShow = null;
 
               if (isSelected && !isTestFinished) {
-                cardStyles = "border border-[#4255ff] bg-[#edefff] text-[#374151] text-base font-normal";
+                cardStyles = "border-2 border-[#4255ff] bg-[#edefff] text-[#374151] text-base font-normal";
               }
 
               if (isTestFinished) {
                 if (isSelected && !isCorrectAns) {
-                  cardStyles = "border border-orange-500 text-orange-600 bg-white dark:bg-slate-900 pointer-events-none text-base";
+                  cardStyles = "border-2 border-orange-500 text-orange-600 bg-white dark:bg-slate-900 pointer-events-none text-base";
                   iconToShow = <span className="text-orange-500 font-extrabold">✕</span>;
                 } else if (isCorrectAns) {
                   cardStyles = "border-2 border-dashed border-green-500 text-green-700 bg-white dark:bg-slate-900 pointer-events-none text-base";
                   iconToShow = <span className="text-green-600 font-extrabold">✓</span>;
                 } else {
-                  cardStyles = "opacity-50 pointer-events-none border border-border bg-slate-50 dark:bg-slate-800/20 text-base";
+                  cardStyles = "opacity-50 pointer-events-none border-2 border-border bg-slate-50 dark:bg-slate-800/20 text-base";
                 }
               }
 
               return (
-                <div
+                <label
                   key={ansIdx}
-                  onClick={() => !isTestFinished && handleAnswerSelect(qIdx, ans)}
                   className={cn(
-                    "p-4 rounded-xl font-semibold transition-all flex items-center gap-3 select-none",
+                    "p-4 rounded-xl transition-all flex items-center gap-4 select-none relative",
                     cardStyles
                   )}
                 >
-                  <span
+                  <input 
+                    type="radio" 
+                    name={`question-${qIdx}`}
+                    checked={isSelected}
+                    onChange={() => !isTestFinished && handleAnswerSelect(qIdx, ans)}
+                    className="absolute opacity-0 w-0 h-0"
+                  />
+                  <div
                     className={cn(
-                      "w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0",
+                      "w-6 h-6 rounded-full border flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors",
                       isSelected && !isTestFinished
-                        ? "bg-[#4255ff] text-white"
+                        ? "bg-[#4255ff] border-[#4255ff] text-white"
                         : isTestFinished && isSelected && !isCorrectAns
-                          ? "bg-orange-100 text-orange-600"
+                          ? "bg-orange-100 border-orange-500 text-orange-600"
                           : isTestFinished && isCorrectAns
-                            ? "bg-green-100 text-green-600"
-                            : "bg-gray-200 dark:bg-slate-800 text-gray-600"
+                            ? "bg-green-100 border-green-500 text-green-600"
+                            : "bg-gray-100 border-gray-300 dark:bg-slate-800 text-gray-500"
                     )}
                   >
                     {iconToShow ? iconToShow : ansIdx + 1}
-                  </span>
-                  <span className="text-base sm:text-lg font-normal text-[#374151]">{ans}</span>
-
-                </div>
+                  </div>
+                  <span className="text-base font-normal text-[#374151] whitespace-pre-wrap flex-1">{ans}</span>
+                </label>
               );
             })}
+          </div>
+
+          <div className="flex justify-end pt-4 mt-4 text-xs font-bold text-gray-400">
+             {qIdx + 1}/{questions.length}
           </div>
         </CardContent>
       </Card>
@@ -569,9 +578,9 @@ const TestMode = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="fixed inset-0 z-[100] bg-[#f6f7fb] overflow-y-auto flex flex-col font-sans">
       {/* COMPONENT A: MAIN HEADER */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 font-sans select-none shadow-sm flex flex-col">
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm flex flex-col flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 w-full h-14 flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             {isTestFinished ? (
@@ -748,7 +757,7 @@ const TestMode = () => {
                         document.getElementById("question-" + idx)?.scrollIntoView({ behavior: "smooth", block: "center" });
                       }}
                       className={cn(
-                        "rounded-lg flex items-center justify-center py-2 px-1 font-medium text-[13px] transition-all active:scale-95 text-white gap-1",
+                        "rounded-lg flex items-center justify-center py-2 px-1 font-bold text-[13px] transition-all active:scale-95 text-white gap-1 shadow-sm",
                         isCorrect ? "bg-green-500" : "bg-orange-500"
                       )}
                     >
