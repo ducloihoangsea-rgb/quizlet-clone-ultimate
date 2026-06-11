@@ -1,15 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText } from "lucide-react";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@acme/ui/dialog";
+import { X } from "lucide-react";
 import { Switch } from "@acme/ui/switch";
-import { Button } from "@acme/ui/button";
+import { cn } from "@acme/ui";
 
 interface TestSettingsDialogProps {
   open: boolean;
@@ -30,14 +23,26 @@ export default function TestSettingsDialog({
 
   // State các cấu hình
   const [questionCount, setQuestionCount] = useState<number>(totalCards);
-  const [answerWith, setAnswerWith] = useState<string>("both"); // Mặc định cả hai
-  
-  // Các loại câu hỏi (mặc định chỉ bật Trắc nghiệm)
   const [types, setTypes] = useState({
     trueFalse: false,
     mc: true,
+    matching: false,
     written: false,
   });
+
+  // Tự động tắt cuộn trang khi mở modal
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [open]);
+
+  if (!open) return null;
 
   const handleStart = () => {
     // Thu thập các type được bật
@@ -46,13 +51,13 @@ export default function TestSettingsDialog({
     if (types.mc) selectedTypes.push("mc");
     if (types.written) selectedTypes.push("written");
 
-    // Nếu không chọn chế độ nào, mặc định dùng trắc nghiệm
+    // Mặc định ít nhất phải có 1 type
     const finalTypes = selectedTypes.length > 0 ? selectedTypes : ["mc"];
 
     // Chuyển hướng sang trang kiểm tra với các query params
     const query = new URLSearchParams({
       limit: questionCount.toString(),
-      answerWith,
+      answerWith: "both",
       types: finalTypes.join(","),
     });
 
@@ -61,115 +66,129 @@ export default function TestSettingsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-3xl p-6 font-sans">
-        <DialogHeader className="flex flex-row items-start justify-between border-b pb-4">
-          <div className="space-y-1">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block">
-              {studySetTitle}
-            </span>
-            <DialogTitle className="text-2xl font-extrabold text-foreground">
-              Thiết lập bài kiểm tra
-            </DialogTitle>
-          </div>
-          <div className="bg-blue-100 dark:bg-blue-950 p-3 rounded-2xl text-blue-600 dark:text-blue-400">
-            <FileText size={32} />
-          </div>
-        </DialogHeader>
+    <div className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4 font-sans backdrop-blur-[1px]">
+      <div 
+        className="bg-white rounded-[24px] w-full max-w-[500px] shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button at top right */}
+        <button 
+          onClick={() => onOpenChange(false)}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors z-10"
+        >
+          <X size={18} className="text-gray-500" />
+        </button>
 
-        <div className="py-6 space-y-6">
-          {/* Số lượng câu hỏi */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-sm font-bold text-foreground block">
-                Câu hỏi
+        {/* Scrollable Content Area */}
+        <div className="p-8 max-h-[85vh] overflow-y-auto">
+          <h2 className="text-[28px] font-bold text-[#1a1d28] mb-8 tracking-tight">Tùy chọn</h2>
+
+          <div className="space-y-6">
+            {/* Câu hỏi (tối đa) */}
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-normal text-[#374151]">
+                Câu hỏi <span className="text-[13px] text-gray-500">(tối đa {totalCards})</span>
               </span>
-              <span className="text-xs text-muted-foreground block">
-                (tối đa {totalCards})
-              </span>
+              <div className="bg-[#f6f7fb] px-4 py-2 rounded-xl">
+                <input
+                  type="number"
+                  min={1}
+                  max={totalCards}
+                  value={questionCount}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (!isNaN(val)) setQuestionCount(Math.min(Math.max(val, 1), totalCards));
+                    else setQuestionCount(1);
+                  }}
+                  className="w-10 bg-transparent text-[#1a1d28] text-center font-bold text-[15px] outline-none"
+                />
+              </div>
             </div>
-            <input
-              type="number"
-              min={1}
-              max={totalCards}
-              value={questionCount}
-              onChange={(e) => {
-                const val = parseInt(e.target.value);
-                if (!isNaN(val)) {
-                  setQuestionCount(Math.min(Math.max(val, 1), totalCards));
-                } else {
-                  setQuestionCount(1);
-                }
-              }}
-              className="w-20 bg-secondary text-foreground text-center font-bold py-2 px-3 border-2 rounded-xl outline-none focus:border-blue-600 transition-all text-sm"
-            />
-          </div>
 
-          {/* Trả lời bằng */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-foreground">
-              Trả lời bằng
-            </span>
-            <select
-              value={answerWith}
-              onChange={(e) => setAnswerWith(e.target.value)}
-              className="bg-secondary text-foreground font-bold py-2 px-3 border-2 rounded-xl outline-none cursor-pointer focus:border-blue-600 transition-all text-sm min-w-[120px]"
-            >
-              <option value="both">Cả hai</option>
-              <option value="definition">Định nghĩa</option>
-              <option value="term">Thuật ngữ</option>
-            </select>
-          </div>
+            {/* Chỉ học thuật ngữ có gắn sao */}
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-normal text-[#374151]">Chỉ học thuật ngữ có gắn sao</span>
+              <Switch disabled />
+            </div>
 
-          <div className="border-t pt-4 space-y-4">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block">
-              Loại câu hỏi
-            </span>
-
-            {/* Đúng / Sai */}
-            <div className="flex items-center justify-between py-1">
-              <span className="text-sm font-bold text-foreground">Đúng/Sai</span>
+            {/* Đúng/Sai */}
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-normal text-[#374151]">Đúng/Sai</span>
               <Switch
                 checked={types.trueFalse}
-                onCheckedChange={(checked) =>
-                  setTypes((prev) => ({ ...prev, trueFalse: checked }))
-                }
+                onCheckedChange={(checked) => setTypes((prev) => ({ ...prev, trueFalse: checked }))}
               />
             </div>
 
             {/* Trắc nghiệm */}
-            <div className="flex items-center justify-between py-1">
-              <span className="text-sm font-bold text-foreground">Trắc nghiệm</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-normal text-[#374151]">Trắc nghiệm</span>
               <Switch
                 checked={types.mc}
-                onCheckedChange={(checked) =>
-                  setTypes((prev) => ({ ...prev, mc: checked }))
-                }
+                onCheckedChange={(checked) => setTypes((prev) => ({ ...prev, mc: checked }))}
               />
+            </div>
+
+            {/* Ghép thẻ */}
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-normal text-[#374151]">Ghép thẻ</span>
+              <Switch disabled />
             </div>
 
             {/* Tự luận */}
-            <div className="flex items-center justify-between py-1">
-              <span className="text-sm font-bold text-foreground">Tự luận</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-normal text-[#374151]">Tự luận</span>
               <Switch
                 checked={types.written}
-                onCheckedChange={(checked) =>
-                  setTypes((prev) => ({ ...prev, written: checked }))
-                }
+                onCheckedChange={(checked) => setTypes((prev) => ({ ...prev, written: checked }))}
               />
             </div>
+
+            <div className="h-[1px] bg-gray-200 my-2" />
+
+            {/* Định dạng câu hỏi */}
+            <div className="flex items-center justify-between cursor-pointer group">
+              <span className="text-[15px] font-normal text-[#374151]">Định dạng câu hỏi</span>
+              <div className="flex items-center gap-1 text-[#4255ff] text-[15px] font-bold group-hover:underline">
+                <span>Xem</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+
+            {/* Tùy chọn sửa sai */}
+            <div className="flex items-center justify-between cursor-pointer group">
+              <span className="text-[15px] font-normal text-[#374151]">Tùy chọn sửa sai</span>
+              <div className="flex items-center gap-1 text-[#4255ff] text-[15px] font-bold group-hover:underline">
+                <span>Xem</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-8 flex justify-end">
+            <button
+              onClick={handleStart}
+              className="bg-[#4255ff] hover:bg-[#3245df] text-white px-6 py-3 rounded-full font-bold text-[15px] transition-colors active:scale-95"
+            >
+              Tạo bài kiểm tra mới
+            </button>
           </div>
         </div>
 
-        <div className="pt-2">
-          <Button
-            onClick={handleStart}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl text-base transition-all active:scale-[0.98] shadow-md hover:shadow-lg"
+        {/* Footer Area */}
+        <div className="p-6 border-t border-gray-100 flex items-center justify-between bg-white rounded-b-[24px]">
+          <button className="text-[#4255ff] font-bold text-[14px] hover:underline">
+            Chính sách quyền riêng tư
+          </button>
+          <button 
+            onClick={() => onOpenChange(false)}
+            className="px-6 py-2 border border-gray-300 rounded-full font-bold text-[14px] text-[#374151] hover:bg-gray-50 transition-colors"
           >
-            Bắt đầu làm kiểm tra
-          </Button>
+            Hủy
+          </button>
         </div>
-      </DialogContent>
-    </Dialog>
+
+      </div>
+    </div>
   );
 }

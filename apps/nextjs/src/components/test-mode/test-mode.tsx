@@ -676,17 +676,17 @@ const TestMode = () => {
         )}
       </div>
 
-      {/* MOBILE DRAWER OVERLAY */}
+      {/* DRAWER OVERLAY */}
       {isDrawerOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/50 z-[105] transition-opacity"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
       
-      {/* MOBILE DRAWER CONTENT */}
+      {/* DRAWER CONTENT */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-background border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out md:hidden flex flex-col",
+        "fixed inset-y-0 left-0 z-[110] w-72 bg-background border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col",
         isDrawerOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-4 border-b flex justify-between items-center">
