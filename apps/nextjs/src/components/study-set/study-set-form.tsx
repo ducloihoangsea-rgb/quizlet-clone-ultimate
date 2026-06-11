@@ -77,6 +77,19 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
   const [isInitialRender, setIsInitialRender] = useState(true);
   const [active, setActive] = useState(0);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [showFloatingBtn, setShowFloatingBtn] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 200) {
+        setShowFloatingBtn(true);
+      } else {
+        setShowFloatingBtn(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const autoFormatQuestion = (text: string) => {
     if (!text) return text;
@@ -337,6 +350,30 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
               <>{defaultValues ? "Save" : "Create"} study set</>
             )}
           </Button>
+
+          {/* Nút nổi hoàn thành tạo học phần ở góc màn hình khi cuộn trang */}
+          {showFloatingBtn && (
+            <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <Button
+                disabled={create.isPending}
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-6 py-5 rounded-full shadow-[0_10px_30px_rgba(37,99,235,0.45)] flex items-center gap-2 border-2 border-blue-400 cursor-pointer active:scale-95 transition-all text-sm md:text-base h-auto"
+              >
+                {create.isPending ? (
+                  <LoaderCircle size={20} className="animate-spin" />
+                ) : (
+                  <>
+                    <span className="text-lg">✨</span>
+                    <span>
+                      {defaultValues
+                        ? "Lưu học phần (Save Set)"
+                        : "Hoàn tất & Tạo học phần (Create Set)"}
+                    </span>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
       <StudySetImportDialog
