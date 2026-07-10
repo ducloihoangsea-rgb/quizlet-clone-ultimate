@@ -1,14 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 import type { RouterOutputs } from "@acme/api";
 import type { Session } from "@acme/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@acme/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@acme/ui/tabs";
+import AvatarPickerModal from "./avatar-picker-modal";
 
 interface ProfileLayoutProps {
   user: RouterOutputs["user"]["byId"];
@@ -19,9 +20,12 @@ interface ProfileLayoutProps {
 const ProfileLayout = ({ user, children, session }: ProfileLayoutProps) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const currentTab = searchParams.get("tab");
 
-  const { id, name, image } = user;
+  const { id, name } = user;
+  const [currentImage, setCurrentImage] = useState<string | null>(user.image ?? null);
+  const isOwner = session?.user.id === user.id;
 
   let tabsValue = "overview";
   if (pathname === `/users/${id}/study-sets`) {
@@ -35,12 +39,29 @@ const ProfileLayout = ({ user, children, session }: ProfileLayoutProps) => {
   return (
     <div className="max-w-6xl mx-auto py-4 select-none">
       <div className="mb-8 flex items-start gap-5">
-        <Avatar className="h-16 w-16 border-2 border-primary/20">
-          <AvatarImage src={image ?? undefined} alt="user avatar" />
-          <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
-            {name?.at(0) ?? "U"}
-          </AvatarFallback>
-        </Avatar>
+        {isOwner ? (
+          <AvatarPickerModal 
+            currentImage={currentImage} 
+            onAvatarChange={(newImg) => {
+              setCurrentImage(newImg);
+              router.refresh();
+            }}
+          >
+            <Avatar className="h-16 w-16 border-2 border-primary/20">
+              <AvatarImage src={currentImage ?? undefined} alt="user avatar" />
+              <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
+                {name?.at(0) ?? "U"}
+              </AvatarFallback>
+            </Avatar>
+          </AvatarPickerModal>
+        ) : (
+          <Avatar className="h-16 w-16 border-2 border-primary/20">
+            <AvatarImage src={currentImage ?? undefined} alt="user avatar" />
+            <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
+              {name?.at(0) ?? "U"}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">{name}</h1>
           <span className="block text-sm font-semibold text-muted-foreground mt-1">

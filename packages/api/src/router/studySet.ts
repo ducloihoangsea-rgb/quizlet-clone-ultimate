@@ -341,14 +341,24 @@ export const studySetRouter = {
         let displayTerm = card.term;
         let displayDefinition = card.definition;
 
-        if (input.answerWith === "term") {
-          displayTerm = card.definition;
-          displayDefinition = card.term;
-        } else if (input.answerWith === "both") {
-          // Ngẫu nhiên 50% hoán đổi
-          if (Math.random() < 0.5) {
+        // Kiểm tra xem thẻ có phải là câu hỏi trắc nghiệm có sẵn A, B, C, D không
+        const isSelfAuthoredMC = !!(
+          card.term.match(/(?:^|\n)\s*([A|a][\.\)\-:\s]+[^\n]+)/) &&
+          card.term.match(/(?:^|\n)\s*([B|b][\.\)\-:\s]+[^\n]+)/) &&
+          card.term.match(/(?:^|\n)\s*([C|c][\.\)\-:\s]+[^\n]+)/) &&
+          card.term.match(/(?:^|\n)\s*([D|d][\.\)\-:\s]+[^\n]+)/)
+        );
+
+        if (!isSelfAuthoredMC) {
+          if (input.answerWith === "term") {
             displayTerm = card.definition;
             displayDefinition = card.term;
+          } else if (input.answerWith === "both") {
+            // Ngẫu nhiên 50% hoán đổi
+            if (Math.random() < 0.5) {
+              displayTerm = card.definition;
+              displayDefinition = card.term;
+            }
           }
         }
 

@@ -34,7 +34,7 @@ const TestMode = () => {
   const queryInput = {
     id,
     limit: limitParam ? parseInt(limitParam) : undefined,
-    types: typesParam ? (typesParam.split(",") as any[]) : undefined,
+    types: typesParam ? (typesParam.split(",") as any[]) : ["mc"],
     answerWith: answerWithParam ? (answerWithParam as any) : undefined,
   };
 
@@ -57,12 +57,61 @@ const TestMode = () => {
   const [isTestFinished, setIsTestFinished] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [timeStart, setTimeStart] = useState<number>(0);
+  const glowObserverRef = useRef<IntersectionObserver | null>(null);
+  const glowBackupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [testResults, setTestResults] = useState({
     correct: 0,
     incorrect: 0,
     percentage: 0,
     timeTaken: "0s",
   });
+
+  // Hàm cuộn đến câu hỏi và kích hoạt hiệu ứng phát sáng xanh (thao tác DOM trực tiếp, đảm bảo 100% luôn hoạt động)
+  const scrollAndHighlight = (idx: number, delay = 0) => {
+    // Dọn dẹp hiệu ứng cũ
+    if (glowObserverRef.current) glowObserverRef.current.disconnect();
+    if (glowBackupTimerRef.current) clearTimeout(glowBackupTimerRef.current);
+    document.querySelector('.question-glow-active')?.classList.remove('question-glow-active');
+
+    setTimeout(() => {
+      const el = document.getElementById("question-" + idx);
+      if (!el) return;
+
+      // Cuộn mượt
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      let triggered = false;
+
+      const applyGlow = () => {
+        if (triggered) return;
+        triggered = true;
+        if (glowObserverRef.current) glowObserverRef.current.disconnect();
+
+        // Xóa class cũ (nếu bấm lại cùng câu)
+        el.classList.remove('question-glow-active');
+        // Ép trình duyệt vẽ lại để animation luôn chạy lại từ đầu
+        void el.offsetWidth;
+        // Thêm class kích hoạt animation
+        el.classList.add('question-glow-active');
+
+        // Tự dọn dẹp khi animation kết thúc
+        const onEnd = () => {
+          el.classList.remove('question-glow-active');
+          el.removeEventListener('animationend', onEnd);
+        };
+        el.addEventListener('animationend', onEnd);
+      };
+
+      // Dùng IntersectionObserver chờ phần tử xuất hiện trên màn hình
+      glowObserverRef.current = new IntersectionObserver((entries) => {
+        if (entries[0]?.isIntersecting) applyGlow();
+      }, { threshold: 0.15 });
+      glowObserverRef.current.observe(el);
+
+      // Backup: nếu sau 3 giây vẫn chưa kích hoạt thì ép chạy
+      glowBackupTimerRef.current = setTimeout(applyGlow, 3000);
+    }, delay);
+  };
 
   // Khởi tạo danh sách phẳng khi nhận dữ liệu từ API
   useEffect(() => {
@@ -203,6 +252,7 @@ const TestMode = () => {
           "border-green-200 bg-green-50/5 dark:border-green-950/20": isTestFinished && isCorrect,
           "border-red-200 bg-red-50/5 dark:border-red-950/20": isTestFinished && !isCorrect,
         })}
+
       >
         <CardContent className="p-0 space-y-4 font-sans">
           <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -299,6 +349,8 @@ const TestMode = () => {
           "border-green-200 bg-green-50/5 dark:border-green-950/20": isTestFinished && isCorrect,
           "border-red-200 bg-red-50/5 dark:border-red-950/20": isTestFinished && !isCorrect,
         })}
+
+
       >
         <CardContent className="p-0 space-y-6 font-sans">
           <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -579,6 +631,18 @@ const TestMode = () => {
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#f6f7fb] overflow-y-auto flex flex-col font-sans">
+      {/* CSS Keyframes cho hiệu ứng phát sáng xanh */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes questionGlow {
+          0% { box-shadow: 0 0 0 0 rgba(66, 85, 255, 0); transform: scale(1); }
+          15% { box-shadow: 0 0 20px 8px rgba(66, 85, 255, 0.25), 0 0 40px 16px rgba(66, 85, 255, 0.1); transform: scale(1.008); }
+          35% { box-shadow: 0 0 25px 10px rgba(66, 85, 255, 0.2), 0 0 50px 20px rgba(66, 85, 255, 0.08); transform: scale(1.005); }
+          100% { box-shadow: 0 0 0 0 rgba(66, 85, 255, 0); transform: scale(1); }
+        }
+        .question-glow-active {
+          animation: questionGlow 1.6s ease-out forwards !important;
+        }
+      ` }} />
       {/* COMPONENT A: MAIN HEADER */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm flex flex-col flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 w-full h-14 flex items-center justify-between">
@@ -708,12 +772,7 @@ const TestMode = () => {
                     key={idx}
                     onClick={() => {
                       setIsDrawerOpen(false);
-                      setTimeout(() => {
-                        document.getElementById("question-" + idx)?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "center",
-                        });
-                      }, 300);
+                      scrollAndHighlight(idx, 300);
                     }}
                     className={cn(
                       "w-10 h-10 rounded-xl font-bold flex items-center justify-center transition-all text-xs border cursor-pointer active:scale-90",
@@ -753,9 +812,7 @@ const TestMode = () => {
                   return (
                     <button
                       key={idx}
-                      onClick={() => {
-                        document.getElementById("question-" + idx)?.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }}
+                      onClick={() => scrollAndHighlight(idx)}
                       className={cn(
                         "rounded-lg flex items-center justify-center py-2 px-1 font-bold text-[13px] transition-all active:scale-95 text-white gap-1 shadow-sm",
                         isCorrect ? "bg-green-500" : "bg-orange-500"

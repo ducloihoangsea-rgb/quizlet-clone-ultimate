@@ -60,11 +60,6 @@ const Navbar = ({ session }: NavbarProps) => {
           <>
             {/* Create Dropdown (Blue plus button) */}
             <CreateOptionsDropdown session={session} />
-            
-            {/* Premium trial notification badge */}
-            <button className="hidden lg:block bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs py-2 px-3 rounded-full transition-colors">
-              {t("daysTrial")}
-            </button>
           </>
         )}
         

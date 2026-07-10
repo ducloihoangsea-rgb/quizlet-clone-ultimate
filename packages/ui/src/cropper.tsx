@@ -122,7 +122,7 @@ const Cropper = ({ children, aspect, afterCrop }: CropperProps) => {
     setCurrentFile: Dispatch<SetStateAction<File | undefined>>,
   ) => {
     // run children onChange
-    (children.props as { onChange: (file: File) => void }).onChange(file);
+    (children.props as { onChange?: (file: File) => void }).onChange?.(file);
 
     // set image to crop
     const reader = new FileReader();
@@ -160,7 +160,7 @@ const Cropper = ({ children, aspect, afterCrop }: CropperProps) => {
             onCropChange={setCrop}
             onCropComplete={onCropComplete}
             onZoomChange={setZoom}
-            showGrid={false}
+            showGrid={true}
           />
           <Slider
             className="m-auto my-6 max-w-64"
@@ -182,7 +182,7 @@ const Cropper = ({ children, aspect, afterCrop }: CropperProps) => {
               </Button>
             </DialogClose>
             <Button onClick={cropImage} type="button">
-              Crop
+              Lưu
             </Button>
           </DialogFooter>
         </DialogContent>
