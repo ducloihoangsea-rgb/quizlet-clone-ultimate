@@ -3,8 +3,8 @@ import type { NextAuthConfig } from "next-auth";
 import { env } from "../env";
 
 export const edgeConfig = {
-  secret: env.AUTH_SECRET,
-  session: { strategy: "jwt" },
+  secret: env.AUTH_SECRET || "fallback_secret_for_development_and_vercel_preview",
+  session: { strategy: "jwt" as const },
   providers: [],
   callbacks: {
     jwt: ({ token, user }) => {
