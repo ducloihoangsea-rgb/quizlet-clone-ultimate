@@ -70,3 +70,9 @@
     --ring: 265 83% 78%;
   }
 }
+
+/* Ẩn nút con mắt mặc định trên trình duyệt Edge/IE */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
