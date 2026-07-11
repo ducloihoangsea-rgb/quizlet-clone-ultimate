@@ -58,6 +58,12 @@ const SignUpClient = ({
   const [birthMonth, setBirthMonth] = useState("1");
   const [birthYear, setBirthYear] = useState("2010");
 
+  // Forgot password states
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
@@ -371,7 +377,9 @@ const SignUpClient = ({
                   type="button"
                   disabled={isLoading}
                   onClick={() => {
-                    toast.info("Vui lòng liên hệ quản trị viên để đặt lại mật khẩu.");
+                    setForgotEmail("");
+                    setForgotSent(false);
+                    setShowForgotModal(true);
                   }}
                   className="text-xs font-bold text-blue-600 hover:underline transition-all disabled:opacity-50"
                 >
@@ -442,6 +450,81 @@ const SignUpClient = ({
 
         </div>
       </div>
+
+      {/* Modal Quên mật khẩu */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 backdrop-blur-[1px]">
+          <div className="bg-background rounded-2xl w-full max-w-[400px] p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-extrabold text-foreground">Quên mật khẩu</h3>
+              <button
+                onClick={() => setShowForgotModal(false)}
+                className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {forgotSent ? (
+              <div className="text-center space-y-3 py-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-sm text-foreground font-bold">Email đã được gửi!</p>
+                <p className="text-xs text-muted-foreground">Kiểm tra hộp thư (và thư mục Spam) để tìm link đặt lại mật khẩu. Link có hiệu lực trong 30 phút.</p>
+                <button
+                  onClick={() => setShowForgotModal(false)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl font-bold text-sm transition-all mt-2"
+                >
+                  Đóng
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">Nhập email đã đăng ký. Chúng tôi sẽ gửi link đặt lại mật khẩu vào email của bạn.</p>
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all"
+                />
+                <button
+                  disabled={forgotLoading || !forgotEmail}
+                  onClick={async () => {
+                    setForgotLoading(true);
+                    try {
+                      await fetch("/api/auth/forgot-password", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: forgotEmail }),
+                      });
+                      setForgotSent(true);
+                    } catch {
+                      toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+                    } finally {
+                      setForgotLoading(false);
+                    }
+                  }}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {forgotLoading && (
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  Gửi link đặt lại mật khẩu
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

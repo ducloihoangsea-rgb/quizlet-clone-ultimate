@@ -33,10 +33,15 @@
    - Chuyển từ việc dùng state React sang dùng thao tác trực tiếp DOM (`element.classList.add`) để đảm bảo animation luôn chạy từ đầu mượt mà, kết hợp với event `animationend`.
 
 ## 4. Quy tắc hoạt động (Luôn ghi nhớ cho AI mới)
-1. **Giao tiếp**: Luôn trả lời bằng tiếng Việt.
+1. **Giao tiếp (Quan trọng)**: KHÔNG cần giải thích dài dòng làm tốn token. Chỉ cần viết code và tóm tắt ngắn gọn vài câu về việc vừa làm cùng tác dụng của nó là đủ. Luôn trả lời bằng tiếng Việt.
 2. **Hiệu suất**: Code luôn hướng tới tốc độ xử lý nhanh nhất, tối ưu dung lượng.
 3. **Thực thi**: Có một file `run.bat` ở thư mục gốc dùng để chạy server (pnpm dev) trên PC bằng mã ASCII. 
 4. Tuân thủ việc dùng các công cụ chuyên dụng (không dùng lệnh bash tùy tiện khi có tool hỗ trợ, ví dụ dùng `grep_search` thay vì bash grep).
+
+## 5. Quy trình Deploy Vercel & Lưu ý Hệ thống (Edge Runtime)
+1. **Lỗi Edge Runtime (Vercel 500 Error)**: Middleware trên Vercel chạy môi trường Edge rất khắt khe, cấm dùng các thư viện Node.js thuần (như `crypto`, module gọi DB).
+   - *Cách đã giải quyết:* Hệ thống xác thực NextAuth đã được tách làm 2 bản. Bản `packages/auth/src/edge.ts` siêu nhẹ được tối ưu riêng cho `middleware.ts`. Các biến môi trường trong `packages/auth/env.ts` được thiết lập `.optional()` kết hợp khóa dự phòng để web không bị sập nếu thiếu biến trên Vercel.
+2. **Quy trình bắt buộc trước khi Deploy**: KHÔNG BAO GIỜ push code lên thẳng Vercel sau khi code xong. Bắt buộc phải chạy lệnh `npx next build` (hoặc `npm run build`) ở Localhost để ép hệ thống biên dịch và quét lỗi toàn diện. Chỉ khi lệnh này trả về "Compiled successfully" thì mới được Push code, giúp hạn chế 99% lỗi trên Vercel.
 
 ---
 *Ghi chú cho AI ở phiên mới: Hãy đọc file này và bạn đã nắm được 90% những gì chúng tôi đã làm. Hãy sẵn sàng nhận yêu cầu tiếp theo từ người dùng dựa trên nền tảng này.*
