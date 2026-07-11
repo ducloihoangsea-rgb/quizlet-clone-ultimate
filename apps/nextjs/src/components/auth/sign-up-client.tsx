@@ -306,13 +306,15 @@ const SignUpClient = ({
               </>
             )}
 
-            {/* Email Field */}
+            {/* Email / Username Field */}
             <div className="space-y-1.5">
-              <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">Email</label>
+              <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">
+                {mode === "signin" ? "Email / Tên người dùng" : "Email"}
+              </label>
               <input 
                 disabled={isLoading}
-                type="email" 
-                placeholder="tên@email.com"
+                type={mode === "signin" ? "text" : "email"} 
+                placeholder={mode === "signin" ? "Email hoặc tên người dùng" : "tên@email.com"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

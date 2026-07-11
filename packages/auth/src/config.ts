@@ -8,7 +8,7 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 import { db } from "@acme/db/client";
 import { Account, Session, User } from "@acme/db/schema";
@@ -58,7 +58,7 @@ export const authConfig = {
     Credentials({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
@@ -66,11 +66,13 @@ export const authConfig = {
           return null;
         }
 
-        const email = credentials.email as string;
+        const loginId = (credentials.email as string).trim();
         const password = credentials.password as string;
 
-        // Tìm kiếm user trong database
-        const users = await db.select().from(User).where(eq(User.email, email)).limit(1);
+        // Tìm user theo email HOẶC username
+        const users = await db.select().from(User).where(
+          or(eq(User.email, loginId), eq(User.name, loginId))
+        ).limit(1);
         const user = users[0];
 
         if (!user || !user.password) {
