@@ -498,12 +498,17 @@ const SignUpClient = ({
                   onClick={async () => {
                     setForgotLoading(true);
                     try {
-                      await fetch("/api/auth/forgot-password", {
+                      const res = await fetch("/api/auth/forgot-password", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email: forgotEmail }),
                       });
-                      setForgotSent(true);
+                      if (res.ok) {
+                        setForgotSent(true);
+                      } else {
+                        const data = await res.json().catch(() => ({}));
+                        toast.error(data.error || "Không gửi được email. Vui lòng thử lại.");
+                      }
                     } catch {
                       toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
                     } finally {
