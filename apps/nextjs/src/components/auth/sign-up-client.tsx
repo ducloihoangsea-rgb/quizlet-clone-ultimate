@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@acme/ui/toast";
 import { useTranslation, type Language } from "~/contexts/i18n-context";
-import { Globe } from "lucide-react";
+import { Globe, Eye, EyeOff } from "lucide-react";
 
 // Custom Google, Facebook, Github SVG icons
 const GoogleIcon = () => (
@@ -53,6 +53,7 @@ const SignUpClient = ({
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [birthDay, setBirthDay] = useState("1");
   const [birthMonth, setBirthMonth] = useState("1");
   const [birthYear, setBirthYear] = useState("2010");
@@ -340,16 +341,42 @@ const SignUpClient = ({
             {/* Password Field */}
             <div className="space-y-1.5">
               <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">{t("password")}</label>
-              <input 
-                disabled={isLoading}
-                type="password" 
-                placeholder="********"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all disabled:opacity-50"
-              />
+              <div className="relative">
+                <input 
+                  disabled={isLoading}
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="********"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-muted/40 border rounded-xl py-2.5 px-4 pr-11 text-sm font-semibold outline-none focus:border-blue-500 focus:bg-background transition-all disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
+
+            {/* Quên mật khẩu (chỉ hiện ở tab Đăng nhập) */}
+            {mode === "signin" && (
+              <div className="flex justify-end -mt-1">
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => {
+                    toast.info("Vui lòng liên hệ quản trị viên để đặt lại mật khẩu.");
+                  }}
+                  className="text-xs font-bold text-blue-600 hover:underline transition-all disabled:opacity-50"
+                >
+                  Quên mật khẩu?
+                </button>
+              </div>
+            )}
 
             {mode === "signup" && (
               <label className="flex items-start gap-2.5 py-1 cursor-pointer select-none">
