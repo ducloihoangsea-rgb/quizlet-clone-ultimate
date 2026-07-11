@@ -66,12 +66,14 @@ interface AvatarPickerModalProps {
 export default function AvatarPickerModal({ children, currentImage, onAvatarChange }: AvatarPickerModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const utils = api.useUtils();
 
   const { mutate, isPending } = api.user.update.useMutation({
     onSuccess(data) {
       if (data.image && onAvatarChange) {
         onAvatarChange(data.image);
       }
+      void utils.user.byId.invalidate({ id: data.id });
       toast.success("Đã cập nhật ảnh đại diện!");
       setIsOpen(false);
     },

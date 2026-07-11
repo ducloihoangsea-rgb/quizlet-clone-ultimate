@@ -20,9 +20,12 @@ import { useTheme } from "@acme/ui/theme";
 
 import { signOutAction } from "~/actions/sign-out";
 import { useTranslation } from "~/contexts/i18n-context";
+import { api } from "~/trpc/react";
 
 const UserDropdown = ({ user }: { user: Session["user"] }) => {
-  const { id, image, name, email } = user;
+  const { id, image: sessionImage, name, email } = user;
+  const { data: dbUser } = api.user.byId.useQuery({ id });
+  const image = dbUser?.image ?? sessionImage;
   const { t, language, setLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
