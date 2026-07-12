@@ -173,11 +173,11 @@ export function getOtherStudySets(
 export function getStudySetFlashcardsQuery(
   db: Database,
   id: string,
-  { limit }: { limit?: number } = {},
+  { limit, random = false }: { limit?: number; random?: boolean } = {},
 ) {
   return db.query.Flashcard.findMany({
     where: eq(Flashcard.studySetId, id),
-    orderBy: sql`RANDOM()`,
+    orderBy: random ? sql`RANDOM()` : asc(Flashcard.position),
     limit,
   });
 }

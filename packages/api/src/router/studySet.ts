@@ -281,6 +281,7 @@ export const studySetRouter = {
     .query(async ({ input, ctx }) => {
       const flashcards = await getStudySetFlashcardsQuery(ctx.db, input.id, {
         limit: 4,
+        random: true,
       });
 
       const matchCards = flashcards
