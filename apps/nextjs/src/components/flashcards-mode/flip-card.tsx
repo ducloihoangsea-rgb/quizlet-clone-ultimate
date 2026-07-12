@@ -12,9 +12,10 @@ import FlipCardContent from "./flip-card-content";
 interface FlipCardProps {
   fullscreen?: boolean;
   session: Session | null;
+  editable?: boolean;
 }
 
-const FlipCard = ({ fullscreen, session }: FlipCardProps) => {
+const FlipCard = ({ fullscreen, session, editable }: FlipCardProps) => {
   const { currentCard, cardRef, textToSpeech, frontFace } = useFlashcardsModeContext();
 
   const [animation, setAnimation] = useState<
@@ -80,8 +81,8 @@ const FlipCard = ({ fullscreen, session }: FlipCardProps) => {
         animate={animation}
         className="relative h-full w-full cursor-pointer [transform-style:preserve-3d]"
       >
-        <FlipCardContent flashcard={currentCard} session={session} />
-        <FlipCardContent flashcard={currentCard} session={session} back />
+        <FlipCardContent flashcard={currentCard} session={session} editable={editable} />
+        <FlipCardContent flashcard={currentCard} session={session} back editable={editable} />
       </motion.div>
     </div>
   );

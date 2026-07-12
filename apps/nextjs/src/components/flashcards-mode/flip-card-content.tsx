@@ -82,7 +82,6 @@ const FlipCardContent = ({
             <span className="text-xs font-semibold">Hiển thị gợi ý</span>
           </div>
           <div className="flex justify-end gap-2">
-            {editable && <EditFlashcardDialog flashcard={flashcard} />}
             <Button
               className="rounded-full"
               onClick={handleSpeak}
@@ -91,6 +90,7 @@ const FlipCardContent = ({
             >
               <Volume2 size={16} />
             </Button>
+            {editable && <EditFlashcardDialog flashcard={flashcard} />}
             <Button
               className="rounded-full"
               onClick={onStarClick}
@@ -105,7 +105,7 @@ const FlipCardContent = ({
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center w-full h-full overflow-hidden">
-          <div className="select-none text-2xl sm:text-3xl whitespace-pre-wrap text-center max-w-full overflow-y-auto px-4 max-h-[180px] sm:max-h-[280px] leading-relaxed">
+          <div className="select-none text-2xl sm:text-3xl whitespace-pre-wrap text-left max-w-full overflow-y-auto px-4 max-h-[180px] sm:max-h-[280px] leading-relaxed w-full [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-gray-600">
             {content}
           </div>
         </div>

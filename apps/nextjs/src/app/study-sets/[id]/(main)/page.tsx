@@ -51,7 +51,7 @@ export default async function StudySet({ params: { id } }: StudySetProps) {
         <div className="m-auto max-w-3xl">
           <StudySetInfo />
           <StudyModes studySetId={id} />
-          <FlashcardsGame session={session} />
+          <FlashcardsGame session={session} editable={userId === session?.user?.id} />
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <CreatedBy user={user} />
             <StudySetCTA session={session} userId={userId} id={id} />

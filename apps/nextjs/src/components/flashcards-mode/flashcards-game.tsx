@@ -18,9 +18,10 @@ export type FlashcardAnimation = "left" | "right" | "know" | "learning" | null;
 interface FlashcardsGameProps {
   session: Session | null;
   fullscreen?: boolean;
+  editable?: boolean;
 }
 
-const FlashcardsGame = ({ fullscreen, session }: FlashcardsGameProps) => {
+const FlashcardsGame = ({ fullscreen, session, editable }: FlashcardsGameProps) => {
   const {
     currentCard,
     count,
@@ -145,7 +146,7 @@ const FlashcardsGame = ({ fullscreen, session }: FlashcardsGameProps) => {
 
       <div className="relative flex [perspective:1000px]">
         {(sorting || trackProgress) && <MessageCard />}
-        <FlipCard fullscreen={fullscreen} session={session} />
+        <FlipCard fullscreen={fullscreen} session={session} editable={editable} />
       </div>
 
       {/* Footer "Nhấp vào thẻ để lật" khi không bật track progress */}

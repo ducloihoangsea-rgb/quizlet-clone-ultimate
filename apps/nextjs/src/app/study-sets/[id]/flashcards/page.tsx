@@ -24,7 +24,7 @@ export async function generateMetadata({
 export default async function FlashcardsMode({
   params: { id },
 }: FlashcardsModeProps) {
-  await api.studySet.byId.prefetch({ id });
+  const { userId } = await api.studySet.byId({ id });
   const session = await auth();
 
   return (
@@ -32,7 +32,7 @@ export default async function FlashcardsMode({
       <FlashcardsModeProvider id={id}>
         <div className="m-auto max-w-5xl px-4">
           <StudyModeHeader currentMode="flashcards" studySetId={id} />
-          <FlashcardsGame fullscreen session={session} />
+          <FlashcardsGame fullscreen session={session} editable={userId === session?.user?.id} />
         </div>
       </FlashcardsModeProvider>
     </HydrateClient>
