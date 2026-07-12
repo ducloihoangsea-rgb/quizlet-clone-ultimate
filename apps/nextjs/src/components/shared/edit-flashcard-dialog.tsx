@@ -27,7 +27,7 @@ import {
   FormMessage,
   useForm,
 } from "@acme/ui/form";
-import { Input } from "@acme/ui/input";
+import { Textarea } from "@acme/ui/textarea";
 import { toast } from "@acme/ui/toast";
 import { EditFlashcardSchema } from "@acme/validators";
 
@@ -84,11 +84,7 @@ const EditFlashcardDialog = ({ flashcard }: EditFlashcardDialogProps) => {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold">Sửa</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -97,11 +93,14 @@ const EditFlashcardDialog = ({ flashcard }: EditFlashcardDialogProps) => {
               name="term"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Term</FormLabel>
                   <FormControl>
-                    <Input disabled={isPending} placeholder="2+2" {...field} />
+                    <Textarea 
+                      disabled={isPending} 
+                      placeholder="Nhập thuật ngữ..." 
+                      className="min-h-[120px] resize-none text-base border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:border-white px-0 bg-transparent font-medium"
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormDescription>Head of your flashcard.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -111,24 +110,27 @@ const EditFlashcardDialog = ({ flashcard }: EditFlashcardDialogProps) => {
               name="definition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Definition</FormLabel>
                   <FormControl>
-                    <Input disabled={isPending} placeholder="4" {...field} />
+                    <Textarea 
+                      disabled={isPending} 
+                      placeholder="Nhập định nghĩa..." 
+                      className="min-h-[60px] resize-none text-base border-0 border-b-2 rounded-none focus-visible:ring-0 focus-visible:border-white px-0 bg-transparent font-medium"
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormDescription>Tail of your flashcard.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-6 pt-4">
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="ghost" className="font-bold">Hủy</Button>
               </DialogClose>
-              <Button disabled={isPending} type="submit">
+              <Button disabled={isPending} type="submit" variant="ghost" className="font-bold">
                 {isPending ? (
                   <Loader2Icon className="size-4 animate-spin" />
                 ) : (
-                  "Save"
+                  "Lưu"
                 )}
               </Button>
             </div>
