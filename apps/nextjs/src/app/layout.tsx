@@ -19,7 +19,7 @@ import Navbar from "~/components/layout/navbar";
 import MainLayout from "~/components/layout/main-layout";
 import Footer from "~/components/layout/footer";
 import SignInDialog from "~/components/layout/sign-in-dialog";
-import SignInWithOauth from "~/components/layout/sign-in-with-oauth";
+
 import FolderDialogProvider from "~/contexts/folder-dialog-context";
 import ClassDialogProvider from "~/contexts/class-dialog-context";
 import SignInDialogProvider from "~/contexts/sign-in-dialog-context";
@@ -87,9 +87,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                         <CreateClassDialog />
                       </>
                     ) : (
-                      <SignInDialog>
-                        <SignInWithOauth />
-                      </SignInDialog>
+                      <SignInDialog />
                     )}
                   </TRPCReactProvider>
                 </ThemeProvider>

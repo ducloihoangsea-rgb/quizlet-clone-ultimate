@@ -6,25 +6,26 @@ import { registerUserAction } from "~/app/actions/auth-actions";
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: { mode?: string };
+  searchParams: { mode?: string, callbackUrl?: string };
 }) {
   const session = await auth();
+  const callbackUrl = searchParams.callbackUrl || "/latest";
 
   // Redirect to latest study sets if user is already logged in
   if (session) {
-    redirect("/latest");
+    redirect(callbackUrl);
   }
 
   const initialMode = searchParams.mode === "signin" ? "signin" : "signup";
 
   const handleSignInGoogle = async () => {
     "use server";
-    await signIn("google");
+    await signIn("google", { redirectTo: callbackUrl });
   };
 
   const handleSignInGithub = async () => {
     "use server";
-    await signIn("github");
+    await signIn("github", { redirectTo: callbackUrl });
   };
 
 
@@ -38,7 +39,7 @@ export default async function SignUpPage({
       await signIn("credentials", {
         email,
         password,
-        redirectTo: "/latest",
+        redirectTo: callbackUrl,
       });
     } catch (error) {
       throw error;
