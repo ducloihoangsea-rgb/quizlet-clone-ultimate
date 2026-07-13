@@ -100,6 +100,7 @@ export const flashcardsReducer = (
       return {
         ...state,
         trackProgress: false,
+        sorting: false,
         learningCount: 0,
         knownCount: 0,
         history: [],
