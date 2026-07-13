@@ -63,6 +63,9 @@ export const flashcardsReducer = (
       flashcards: state.hard,
       hard: [],
       index: 0,
+      learningCount: 0,
+      knownCount: 0,
+      history: [],
     };
   }
   if (action.type === "SHUFFLE") {
@@ -118,9 +121,11 @@ export const flashcardsReducer = (
   }
 
   if (action.type === "MARK_LEARNING") {
+    const currentCard = state.flashcards[state.index];
     return {
       ...state,
       learningCount: state.learningCount + 1,
+      hard: currentCard ? [...state.hard, currentCard] : state.hard,
       index: state.index + 1,
       know: false,
       history: [...state.history, { action: "learning" }],
@@ -145,6 +150,7 @@ export const flashcardsReducer = (
       index: state.index - 1,
       learningCount: lastAction.action === "learning" ? state.learningCount - 1 : state.learningCount,
       knownCount: lastAction.action === "known" ? state.knownCount - 1 : state.knownCount,
+      hard: lastAction.action === "learning" ? state.hard.slice(0, -1) : state.hard,
       history: state.history.slice(0, -1),
     };
   }
