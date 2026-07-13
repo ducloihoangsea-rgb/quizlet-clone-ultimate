@@ -35,6 +35,7 @@ const FlashcardsGame = ({ fullscreen, session, editable }: FlashcardsGameProps) 
     knownCount,
     handleLeft,
     handleRight,
+    undo,
   } = useFlashcardsModeContext();
   const router = useRouter();
   const { id }: { id: string } = useParams();
@@ -80,42 +81,16 @@ const FlashcardsGame = ({ fullscreen, session, editable }: FlashcardsGameProps) 
     router.push(`/study-sets/${id}`);
   };
 
-  const firstButton = {
-    text:
-      hardCount > 0
-        ? "Ôn lại các thuật ngữ khó"
-        : !fullscreen
-          ? "Học thẻ ghi nhớ"
-          : "Quay lại học phần",
-    description:
-      hardCount > 0
-        ? `Ôn lại với ${hardCount} thuật ngữ bạn vẫn đang học.`
-        : !fullscreen
-          ? "Bắt đầu học thẻ ghi nhớ"
-          : "Quay lại trang học phần.",
-    callback:
-      hardCount > 0
-        ? reviewHard
-        : !fullscreen
-          ? learnFlashcards
-          : backToStudySet,
-    Icon: !fullscreen ? <GraduationCap size={42} /> : <Undo2 size={32} />,
-  };
-
-  const secondButton = {
-    text: "Đặt lại thẻ ghi nhớ",
-    description: `Học lại toàn bộ ${count} thuật ngữ từ đầu.`,
-    callback: reset,
-    Icon: <RotateCcw size={32} />,
-  };
-
   if (!currentCard) {
     return (
       <GameResult
-        hard={trackProgress ? learningCount : hardCount}
         cardCount={count}
-        firstButton={firstButton}
-        secondButton={secondButton}
+        knownCount={trackProgress ? knownCount : (count - hardCount)}
+        learningCount={trackProgress ? learningCount : hardCount}
+        onUndo={undo}
+        onLearnMode={learnFlashcards}
+        onReviewHard={reviewHard}
+        onReset={reset}
       />
     );
   }
