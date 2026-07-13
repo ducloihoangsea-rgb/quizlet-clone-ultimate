@@ -112,7 +112,7 @@ const FlashcardsGame = ({ fullscreen, session, editable }: FlashcardsGameProps) 
   if (!currentCard) {
     return (
       <GameResult
-        hard={hardCount}
+        hard={trackProgress ? learningCount : hardCount}
         cardCount={count}
         firstButton={firstButton}
         secondButton={secondButton}
