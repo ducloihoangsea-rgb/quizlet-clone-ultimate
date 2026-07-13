@@ -87,7 +87,7 @@ export const studyProgressRouter = {
 
       return { success: true };
     }),
-  ,submitLearnReview: protectedProcedure
+  submitLearnReview: protectedProcedure
     .input(z.object({ flashcardId: z.number(), grade: z.number().min(0).max(5) }))
     .mutation(async ({ ctx, input }) => {
       const progressList = await ctx.db.query.StudyProgress.findMany({

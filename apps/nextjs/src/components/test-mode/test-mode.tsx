@@ -17,10 +17,18 @@ function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    const temp = arr[i] as T;
+    arr[i] = arr[j] as T;
+    arr[j] = temp;
   }
   return arr;
 }
+
+export type Answers = {
+  trueOrFalse: { answer: string; term: string; userAnswer: string; definition: string }[];
+  multipleChoice: { term: string; answers: string[]; userAnswer: string; definition: string }[];
+  written: { term: string; userAnswer: string; definition: string }[];
+};
 
 const TestMode = () => {
   const { id }: { id: string } = useParams();

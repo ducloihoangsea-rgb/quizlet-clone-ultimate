@@ -12,6 +12,7 @@ import {
   BookOpen,
   Info
 } from "lucide-react";
+import { toast } from "@acme/ui/toast";
 
 import {
   Dialog,

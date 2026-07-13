@@ -302,12 +302,13 @@ export const studySetRouter = {
       let dueCards = flashcards;
       
       if (ctx.session) {
+        const userId = ctx.session.user.id;
         // Lấy tiến độ SRS
         const progressList = await ctx.db.query.StudyProgress.findMany({
           where: (p, { eq, inArray }) => 
             inArray(p.flashcardId, flashcards.map(f => f.id)),
         });
-        const progressMap = new Map(progressList.filter(p => p.userId === ctx.session.user.id).map(p => [p.flashcardId, p]));
+        const progressMap = new Map(progressList.filter(p => p.userId === userId).map(p => [p.flashcardId, p]));
         
         const now = new Date();
         dueCards = flashcards.filter(card => {

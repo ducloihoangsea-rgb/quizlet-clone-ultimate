@@ -757,7 +757,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
               {/* Ôn tập thêm */}
               <button
-                onClick={restart}
+                onClick={() => restart()}
                 className="flex flex-col items-center justify-center p-6 bg-green-50 hover:bg-green-100 dark:bg-green-950/40 dark:hover:bg-green-900/40 border-2 border-green-200 dark:border-green-900 rounded-2xl shadow-sm hover:shadow transition-all active:scale-[0.98] text-center space-y-3 group"
               >
                 <div className="bg-green-600 text-white p-3 rounded-xl group-hover:scale-110 transition-all">
