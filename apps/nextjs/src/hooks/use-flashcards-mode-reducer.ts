@@ -5,6 +5,7 @@ import { useReducer } from "react";
 import type { RouterOutputs } from "@acme/api";
 
 type Flashcards = RouterOutputs["studySet"]["byId"]["flashcards"];
+type Progress = RouterOutputs["studyProgress"]["getProgress"];
 
 export const flashcardsInitial = {
   flashcards: [] as Flashcards,
@@ -173,5 +174,32 @@ export const flashcardsReducer = (
   };
 };
 
-export const useFlashcardsModeReducer = (flashcards: Flashcards) =>
-  useReducer(flashcardsReducer, { ...flashcardsInitial, flashcards });
+export const useFlashcardsModeReducer = (flashcards: Flashcards, progress: Progress) => {
+  const progressMap = new Map(progress.map((p) => [p.flashcardId, p.flashcardStatus]));
+  
+  const learningCards = flashcards.filter((c) => progressMap.get(c.id) === "learning");
+  const unseenCards = flashcards.filter(
+    (c) => !progressMap.has(c.id) || progressMap.get(c.id) === "unseen"
+  );
+  
+  // Nếu có thẻ đang học hoặc chưa xem thì kết hợp lại, nếu không thì lấy toàn bộ (trường hợp đã học hết)
+  const remainingCards =
+    learningCards.length > 0 || unseenCards.length > 0
+      ? [...learningCards, ...unseenCards]
+      : flashcards;
+
+  const learningCount = learningCards.length;
+  const knownCount = progress.filter((p) => p.flashcardStatus === "known").length;
+
+  const hasProgress = learningCount > 0 || knownCount > 0;
+
+  return useReducer(flashcardsReducer, {
+    ...flashcardsInitial,
+    flashcards: remainingCards,
+    hard: learningCards,
+    learningCount,
+    knownCount,
+    trackProgress: hasProgress,
+    sorting: hasProgress,
+  });
+};

@@ -6,6 +6,7 @@ import { starredFlashcardRouter } from "./router/starredFlashcard";
 import { studySetRouter } from "./router/studySet";
 import { userRouter } from "./router/user";
 import { classRouter } from "./router/class";
+import { studyProgressRouter } from "./router/studyProgress";
 import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   starredFlashcard: starredFlashcardRouter,
   activity: activityRouter,
   class: classRouter,
+  studyProgress: studyProgressRouter,
 });
 
 // export type definition of API

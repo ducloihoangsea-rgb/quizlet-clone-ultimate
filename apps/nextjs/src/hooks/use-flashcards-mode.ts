@@ -9,9 +9,12 @@ import { useFlashcardsModeReducer } from "./use-flashcards-mode-reducer";
 export function useFlashcardsMode(id: string) {
   const [{ flashcards: initialFlashcards }] =
     api.studySet.byId.useSuspenseQuery({ id });
+  const [progress] = api.studyProgress.getProgress.useSuspenseQuery({ studySetId: id });
+  const { mutate: updateStatus } = api.studyProgress.updateFlashcardStatus.useMutation();
+  const { mutate: resetProgressMutation } = api.studyProgress.resetFlashcardProgress.useMutation();
 
   const [{ sorting, flashcards, index, starredOnly, hard, know, trackProgress, learningCount, knownCount, history, frontFace, textToSpeech }, dispatch] =
-    useFlashcardsModeReducer(initialFlashcards);
+    useFlashcardsModeReducer(initialFlashcards, progress);
 
   const [cardRef, animateCard] = useAnimate();
   const [messageRef, animateMessage] = useAnimate();
@@ -53,6 +56,7 @@ export function useFlashcardsMode(id: string) {
   };
 
   const reset = () => {
+    resetProgressMutation({ studySetId: id });
     dispatch({ type: "RESET", payload: initialFlashcards });
   };
 
@@ -64,6 +68,7 @@ export function useFlashcardsMode(id: string) {
     if (trackProgress) {
       // Trong chế độ theo dõi tiến độ, nút X = đánh dấu "Đang học"
       dispatch({ type: "MARK_LEARNING" });
+      updateStatus({ flashcardId: currentCard.id, status: "learning" });
 
       await animateMessage(
         messageRef.current,
@@ -124,6 +129,7 @@ export function useFlashcardsMode(id: string) {
     if (trackProgress) {
       // Trong chế độ theo dõi tiến độ, nút ✓ = đánh dấu "Đã biết"
       dispatch({ type: "MARK_KNOWN_PROGRESS" });
+      updateStatus({ flashcardId: currentCard.id, status: "known" });
 
       await animateMessage(
         messageRef.current,
@@ -195,6 +201,12 @@ export function useFlashcardsMode(id: string) {
   };
 
   const undo = () => {
+    if (history.length > 0 && index > 0) {
+      const previousCard = flashcards[index - 1];
+      if (previousCard && trackProgress) {
+        updateStatus({ flashcardId: previousCard.id, status: "unseen" });
+      }
+    }
     dispatch({ type: "UNDO" });
   };
 

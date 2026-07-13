@@ -11,3 +11,4 @@ export * from "./verificationToken";
 export * from "./class";
 export * from "./classToStudySet";
 export * from "./classToFolder";
+export * from "./studyProgress";

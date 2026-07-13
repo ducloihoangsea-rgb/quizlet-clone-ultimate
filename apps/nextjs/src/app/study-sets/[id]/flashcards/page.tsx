@@ -25,6 +25,7 @@ export default async function FlashcardsMode({
   params: { id },
 }: FlashcardsModeProps) {
   const { userId } = await api.studySet.byId({ id });
+  await api.studyProgress.getProgress.prefetch({ studySetId: id });
   const session = await auth();
 
   return (

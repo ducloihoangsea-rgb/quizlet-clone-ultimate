@@ -60,6 +60,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   );
 
   const [studySet] = api.studySet.byId.useSuspenseQuery({ id });
+  const { mutate: submitReview } = api.studyProgress.submitLearnReview.useMutation();
 
   const [config, setConfig] = useState<LearnConfig>(defaultConfig);
   const [isMounted, setIsMounted] = useState(false);
@@ -389,6 +390,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     } else {
       // ─── NORMAL MODE (lần thử đầu) ───
       if (isCorrect) {
+        submitReview({ flashcardId: card.id, grade: 4 });
         playCorrectSound();
         setCorrectAnswersCount((prev) => prev + 1);
         setCorrectCount((prev) => prev + 1);
@@ -402,6 +404,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
           checkSegmentEnd(nextIndex, newStreak, isSegmentLocked, wrongQuestionsList);
         }, 800);
       } else {
+        submitReview({ flashcardId: card.id, grade: 1 });
         // Sai → theo dõi câu sai, reset streak
         setGlobalStreak(0);
         setIsSegmentLocked(true);
@@ -552,6 +555,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     setUserAnswer(trimmedInput);
 
     const isCorrect = trimmedInput.toLowerCase() === card.definition.toLowerCase();
+    submitReview({ flashcardId: card.id, grade: isCorrect ? 4 : 1 });
 
     if (isCorrect) {
       setCorrectCount((prev) => prev + 1);
@@ -564,6 +568,8 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
   const handleDontKnow = () => {
     if (userAnswer) return;
+    const card = sessionCards[currentIndex];
+    if (card) submitReview({ flashcardId: card.id, grade: 1 });
     setUserAnswer("Đã bỏ qua");
   };
 
@@ -575,6 +581,9 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
   // ─── Flashcard mode handlers ───
   const handleFlashcardFeedback = (know: boolean) => {
+    const card = sessionCards[currentIndex];
+    if (card) submitReview({ flashcardId: card.id, grade: know ? 4 : 1 });
+    
     if (know) {
       setCorrectCount((prev) => prev + 1);
       setCorrectAnswersCount((prev) => prev + 1);

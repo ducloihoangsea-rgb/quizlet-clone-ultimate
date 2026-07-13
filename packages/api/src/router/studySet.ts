@@ -298,8 +298,44 @@ export const studySetRouter = {
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
       const flashcards = await getStudySetFlashcardsQuery(ctx.db, input.id);
+      
+      let dueCards = flashcards;
+      
+      if (ctx.session) {
+        // Lấy tiến độ SRS
+        const progressList = await ctx.db.query.StudyProgress.findMany({
+          where: (p, { eq, inArray }) => 
+            inArray(p.flashcardId, flashcards.map(f => f.id)),
+        });
+        const progressMap = new Map(progressList.filter(p => p.userId === ctx.session.user.id).map(p => [p.flashcardId, p]));
+        
+        const now = new Date();
+        dueCards = flashcards.filter(card => {
+          const p = progressMap.get(card.id);
+          if (!p) return true; // Thẻ mới
+          if (p.srsStep < 3) return true; // Đang học
+          if (new Date(p.nextReviewDate) <= now) return true; // Tới hạn ôn tập
+          return false;
+        });
 
-      const cards = generateMultipleChoiceCards(flashcards, flashcards);
+        // Giới hạn 20 thẻ mỗi phiên học để không bị quá tải
+        if (dueCards.length > 20) {
+           // Ưu tiên thẻ đến hạn ôn tập trước, sau đó thẻ đang học, cuối cùng mới đến thẻ mới
+           dueCards.sort((a, b) => {
+             const pA = progressMap.get(a.id);
+             const pB = progressMap.get(b.id);
+             if (!pA && !pB) return 0;
+             if (!pA) return 1;
+             if (!pB) return -1;
+             return new Date(pA.nextReviewDate).getTime() - new Date(pB.nextReviewDate).getTime();
+           });
+           dueCards = dueCards.slice(0, 20);
+        }
+      }
+
+      if (dueCards.length === 0) return [];
+
+      const cards = generateMultipleChoiceCards(dueCards, flashcards);
 
       const starredFlashcards = await getStarredFlashcards(ctx, input.id);
 
