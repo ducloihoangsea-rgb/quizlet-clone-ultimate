@@ -824,7 +824,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
               {/* Ôn tập thêm */}
               <button
-                onClick={() => restart()}
+                onClick={handleResetProgress}
                 className="flex flex-col items-center justify-center p-6 bg-green-50 hover:bg-green-100 dark:bg-green-950/40 dark:hover:bg-green-900/40 border-2 border-green-200 dark:border-green-900 rounded-2xl shadow-sm hover:shadow transition-all active:scale-[0.98] text-center space-y-3 group"
               >
                 <div className="bg-green-600 text-white p-3 rounded-xl group-hover:scale-110 transition-all">
@@ -930,7 +930,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
             <LearnOptionsDialog
               config={config}
               onSave={saveConfig}
-              onRestart={restart}
+              onRestart={handleResetProgress}
               hasStarredTerms={flashcards.some((c) => c.starred)}
               triggerElement={
                 <button className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-extrabold text-sm rounded-xl transition-all border border-blue-100 dark:border-blue-900/50">
