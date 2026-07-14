@@ -319,19 +319,6 @@ export const studySetRouter = {
           return false;
         });
 
-        // Giới hạn 20 thẻ mỗi phiên học để không bị quá tải
-        if (dueCards.length > 20) {
-           // Ưu tiên thẻ đến hạn ôn tập trước, sau đó thẻ đang học, cuối cùng mới đến thẻ mới
-           dueCards.sort((a, b) => {
-             const pA = progressMap.get(a.id);
-             const pB = progressMap.get(b.id);
-             if (!pA && !pB) return 0;
-             if (!pA) return 1;
-             if (!pB) return -1;
-             return new Date(pA.nextReviewDate).getTime() - new Date(pB.nextReviewDate).getTime();
-           });
-           dueCards = dueCards.slice(0, 20);
-        }
       }
 
       if (dueCards.length === 0) return [];
