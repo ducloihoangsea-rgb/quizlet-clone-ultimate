@@ -83,6 +83,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   const [sessionCards, setSessionCards] = useState<typeof flashcards>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  const [skippedCorrectCount, setSkippedCorrectCount] = useState(0);
   const [userAnswer, setUserAnswer] = useState<string | undefined>();
   const [isCompleted, setIsCompleted] = useState(false);
   const [isTestSettingsOpen, setIsTestSettingsOpen] = useState(false);
@@ -119,7 +120,19 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     ? wrongQuestionsList[reviewIndex]
     : sessionCards[currentIndex];
 
-  const progress = sessionCards.length > 0 ? (currentIndex / sessionCards.length) * 100 : 0;
+  const totalCards = sessionCards.length + skippedCorrectCount;
+  const progress = totalCards > 0 ? ((currentIndex + skippedCorrectCount) / totalCards) * 100 : 0;
+
+  const saveCardProgress = (cardId: number, status: "correct" | "incorrect") => {
+    if (typeof window === "undefined") return;
+    try {
+      const key = `learn_session_state_${id}`;
+      const savedStr = localStorage.getItem(key);
+      const saved = savedStr ? JSON.parse(savedStr) : {};
+      saved[cardId] = status;
+      localStorage.setItem(key, JSON.stringify(saved));
+    } catch (e) {}
+  };
 
   // ─── Âm thanh trả lời đúng (Web Audio API - không cần file mp3) ───
   const playCorrectSound = useCallback(() => {
@@ -147,12 +160,13 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   const handleResetProgress = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(`study_progress_learned_${id}`);
+      localStorage.removeItem(`learn_session_state_${id}`);
     }
-    restart();
+    restart(config, true);
   };
 
   // ─── Initialize / restart ───
-  const restart = (currentConfig = config) => {
+  const restart = (currentConfig = config, forceReset = false) => {
     let cards = [...flashcards];
 
     // Filter starred terms
@@ -178,6 +192,43 @@ const LearnMode = ({ session }: { session: Session | null }) => {
         localStorage.setItem(`quizlet_learn_config_${id}`, JSON.stringify(nextConfig));
       }
       setConfig(nextConfig);
+    }
+
+    // -- NEW: Load session state and filter --
+    let savedProgress: Record<string, "correct" | "incorrect"> = {};
+    if (!forceReset && typeof window !== "undefined") {
+      try {
+        const savedStr = localStorage.getItem(`learn_session_state_${id}`);
+        if (savedStr) {
+          savedProgress = JSON.parse(savedStr);
+        }
+      } catch (e) {}
+    }
+
+    const incorrectCards: typeof cards = [];
+    const unseenCards: typeof cards = [];
+    let correctCountLoaded = 0;
+
+    for (const c of cards) {
+      const status = savedProgress[c.id];
+      if (status === "correct") {
+        correctCountLoaded++;
+      } else if (status === "incorrect") {
+        incorrectCards.push(c);
+      } else {
+        unseenCards.push(c);
+      }
+    }
+
+    cards = [...incorrectCards, ...unseenCards];
+
+    // Nếu người dùng đã học xong toàn bộ thẻ trong session này
+    if (cards.length === 0 && correctCountLoaded > 0) {
+      setSessionCards([]);
+      setIsCompleted(true);
+      setCorrectCount(correctCountLoaded);
+      setSkippedCorrectCount(correctCountLoaded);
+      return;
     }
 
     // Tự động tạo phương án trắc nghiệm phù hợp với hướng câu trả lời ở client
@@ -263,7 +314,8 @@ const LearnMode = ({ session }: { session: Session | null }) => {
 
     setSessionCards(cards);
     setCurrentIndex(0);
-    setCorrectCount(0);
+    setCorrectCount(correctCountLoaded);
+    setSkippedCorrectCount(correctCountLoaded);
     setUserAnswer(undefined);
     setIsCompleted(false);
     setWrittenInput("");
@@ -368,6 +420,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     if (isReviewMode) {
       // ─── REVIEW MODE ───
       if (isCorrect) {
+        saveCardProgress(card.id, "correct");
         playCorrectSound();
         setCorrectAnswersCount((prev) => prev + 1);
         // Loại bỏ câu đúng khỏi danh sách ôn tập
@@ -390,6 +443,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     } else {
       // ─── NORMAL MODE (lần thử đầu) ───
       if (isCorrect) {
+        saveCardProgress(card.id, "correct");
         submitReview({ flashcardId: card.id, grade: 4 });
         playCorrectSound();
         setCorrectAnswersCount((prev) => prev + 1);
@@ -404,6 +458,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
           checkSegmentEnd(nextIndex, newStreak, isSegmentLocked, wrongQuestionsList);
         }, 800);
       } else {
+        saveCardProgress(card.id, "incorrect");
         submitReview({ flashcardId: card.id, grade: 1 });
         // Sai → theo dõi câu sai, reset streak
         setGlobalStreak(0);
@@ -555,6 +610,7 @@ const LearnMode = ({ session }: { session: Session | null }) => {
     setUserAnswer(trimmedInput);
 
     const isCorrect = trimmedInput.toLowerCase() === card.definition.toLowerCase();
+    saveCardProgress(card.id, isCorrect ? "correct" : "incorrect");
     submitReview({ flashcardId: card.id, grade: isCorrect ? 4 : 1 });
 
     if (isCorrect) {
@@ -569,11 +625,19 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   const handleDontKnow = () => {
     if (userAnswer) return;
     const card = sessionCards[currentIndex];
-    if (card) submitReview({ flashcardId: card.id, grade: 1 });
+    if (card) {
+      saveCardProgress(card.id, "incorrect");
+      submitReview({ flashcardId: card.id, grade: 1 });
+    }
     setUserAnswer("Đã bỏ qua");
   };
 
   const handleOverrideCorrect = () => {
+    const card = sessionCards[currentIndex];
+    if (card) {
+      saveCardProgress(card.id, "correct");
+      submitReview({ flashcardId: card.id, grade: 4 });
+    }
     setCorrectCount((prev) => prev + 1);
     setCorrectAnswersCount((prev) => prev + 1);
     handleContinue();
@@ -582,7 +646,10 @@ const LearnMode = ({ session }: { session: Session | null }) => {
   // ─── Flashcard mode handlers ───
   const handleFlashcardFeedback = (know: boolean) => {
     const card = sessionCards[currentIndex];
-    if (card) submitReview({ flashcardId: card.id, grade: know ? 4 : 1 });
+    if (card) {
+      saveCardProgress(card.id, know ? "correct" : "incorrect");
+      submitReview({ flashcardId: card.id, grade: know ? 4 : 1 });
+    }
     
     if (know) {
       setCorrectCount((prev) => prev + 1);
