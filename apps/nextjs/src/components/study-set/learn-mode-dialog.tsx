@@ -17,16 +17,22 @@ interface LearnModeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   studySetId: string;
+  onGoalSelected?: (goal: string) => void;
 }
 
-const LearnModeDialog = ({ open, onOpenChange, studySetId }: LearnModeDialogProps) => {
+const LearnModeDialog = ({ open, onOpenChange, studySetId, onGoalSelected }: LearnModeDialogProps) => {
   const router = useRouter();
   const [selectedGoal, setSelectedGoal] = useState<"cramming" | "spaced_repetition">("cramming");
   const { data: studySet } = api.studySet.byId.useQuery({ id: studySetId }, { enabled: open });
 
   const handleStart = () => {
     onOpenChange(false);
-    router.push(`/study-sets/${studySetId}/learn?goal=${selectedGoal}`);
+    localStorage.setItem(`quizlet_learn_goal_${studySetId}`, selectedGoal);
+    if (onGoalSelected) {
+      onGoalSelected(selectedGoal);
+    } else {
+      router.push(`/study-sets/${studySetId}/learn?goal=${selectedGoal}`);
+    }
   };
 
   return (

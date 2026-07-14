@@ -21,6 +21,8 @@ import { useTranslation } from "~/contexts/i18n-context";
 import TestSettingsDialog from "../shared/test-settings-dialog";
 import LearnProgressBar from "./learn-progress-bar";
 import SegmentEndScreen from "./segment-end-screen";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@acme/ui/dialog";
+import LearnModeDialog from "../study-set/learn-mode-dialog";
 
 // Số câu hỏi mỗi đoạn (segment)
 const SEGMENT_SIZE = 7;
@@ -98,6 +100,9 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
   const [wrongQuestionsList, setWrongQuestionsList] = useState<typeof flashcards>([]);
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
+
+  const [isRestartConfirmOpen, setIsRestartConfirmOpen] = useState(false);
+  const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [showSegmentEnd, setShowSegmentEnd] = useState(false);
   const [segmentWrongIds, setSegmentWrongIds] = useState<Set<number>>(new Set());
   const [progressFlashRed, setProgressFlashRed] = useState(false);
@@ -158,11 +163,21 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
 
   // ─── Reset progress ───
   const handleResetProgress = () => {
+    setIsRestartConfirmOpen(true);
+  };
+
+  const confirmRestart = () => {
+    setIsRestartConfirmOpen(false);
+    setIsLearnModalOpen(true);
+  };
+
+  const startNewGoal = (newGoal: string) => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(`study_progress_learned_${id}`);
       localStorage.removeItem(`learn_session_state_${id}`);
     }
-    restart(config, true);
+    router.replace(`/study-sets/${id}/learn?goal=${newGoal}`);
+    window.location.reload(); // Refresh the page to clear all local runtime state
   };
 
   // ─── Initialize / restart ───
@@ -929,18 +944,50 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
           <div className="border-t pt-4">
             <LearnOptionsDialog
               config={config}
-              onSave={saveConfig}
-              onRestart={handleResetProgress}
+              onSave={setConfig}
+              onRestart={() => setIsRestartConfirmOpen(true)}
               hasStarredTerms={flashcards.some((c) => c.starred)}
-              triggerElement={
-                <button className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-extrabold text-sm rounded-xl transition-all border border-blue-100 dark:border-blue-900/50">
-                  Xem tất cả các tùy chọn
-                </button>
-              }
             />
           </div>
         </div>
       </div>
+
+      <Dialog open={isRestartConfirmOpen} onOpenChange={setIsRestartConfirmOpen}>
+        <DialogContent className="max-w-md w-full p-0 overflow-hidden flex flex-col rounded-2xl border bg-card">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-2xl font-extrabold tracking-tight">
+              Khởi động lại Học?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 pt-2">
+            <p className="text-sm text-foreground/80 leading-relaxed mb-6">
+              Chế độ Học căn cứ vào hành vi học tập trước đây của bạn để xác định nội dung nào là thách thức nhất đối với bạn, qua đó giúp các phiên học đúng trọng tâm hơn. Khởi động lại chế độ Học sẽ thiết lập lại mục tiêu học tập cũng như tiến độ của bạn. Điều đó có nghĩa là bạn sẽ thấy tất cả các thuật ngữ như trước, khởi động lại từ đầu.
+            </p>
+            <div className="flex items-center justify-end gap-3 mt-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => setIsRestartConfirmOpen(false)}
+                className="font-bold text-foreground bg-muted hover:bg-muted/80 rounded-xl px-5 h-12"
+              >
+                Không, tiếp tục
+              </Button>
+              <Button 
+                onClick={confirmRestart}
+                className="font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl px-5 h-12"
+              >
+                Có, khởi động lại chế độ Học
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <LearnModeDialog 
+        open={isLearnModalOpen} 
+        onOpenChange={setIsLearnModalOpen} 
+        studySetId={id} 
+        onGoalSelected={startNewGoal}
+      />
     </div>
   );
 };

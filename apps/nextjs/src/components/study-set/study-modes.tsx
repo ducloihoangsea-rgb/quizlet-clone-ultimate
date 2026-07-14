@@ -9,9 +9,11 @@ import { Card, CardContent } from "@acme/ui/card";
 import { useTranslation } from "~/contexts/i18n-context";
 import LearnModeDialog from "./learn-mode-dialog";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const StudyModes = ({ studySetId, session }: { studySetId: string, session: Session | null }) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const { onOpenChange } = useSignInDialogContext();
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   
@@ -30,7 +32,12 @@ const StudyModes = ({ studySetId, session }: { studySetId: string, session: Sess
     }
     if (id === "learn") {
       e.preventDefault();
-      setIsLearnModalOpen(true);
+      const savedGoal = localStorage.getItem(`quizlet_learn_goal_${studySetId}`);
+      if (savedGoal) {
+        router.push(`/study-sets/${studySetId}/learn?goal=${savedGoal}`);
+      } else {
+        setIsLearnModalOpen(true);
+      }
     }
   };
 
