@@ -103,6 +103,7 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
 
   const [isRestartConfirmOpen, setIsRestartConfirmOpen] = useState(false);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
+  const [initialWrongIds, setInitialWrongIds] = useState<Set<number>>(new Set());
   const [showSegmentEnd, setShowSegmentEnd] = useState(false);
   const [segmentWrongIds, setSegmentWrongIds] = useState<Set<number>>(new Set());
   const [progressFlashRed, setProgressFlashRed] = useState(false);
@@ -223,6 +224,7 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
     const incorrectCards: typeof cards = [];
     const unseenCards: typeof cards = [];
     let correctCountLoaded = 0;
+    const loadedWrongIds = new Set<number>();
 
     for (const c of cards) {
       const status = savedProgress[c.id];
@@ -230,10 +232,13 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
         correctCountLoaded++;
       } else if (status === "incorrect") {
         incorrectCards.push(c);
+        loadedWrongIds.add(c.id);
       } else {
         unseenCards.push(c);
       }
     }
+    
+    setInitialWrongIds(loadedWrongIds);
 
     cards = [...incorrectCards, ...unseenCards];
 
@@ -730,7 +735,7 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
                   callback={handleAnswerSelect}
                   definition={config.answerWith === "term" ? currentCard.term : currentCard.definition}
                   userAnswer={userAnswer}
-                  isReviewMode={isReviewMode}
+                  isReviewMode={isReviewMode || initialWrongIds.has(currentCard.id)}
                 />
 
                 {/* Continue bar sau khi trả lời sai */}
