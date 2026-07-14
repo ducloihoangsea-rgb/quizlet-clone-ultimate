@@ -7,29 +7,37 @@ import type { Session } from "@acme/auth";
 import { useSignInDialogContext } from "~/contexts/sign-in-dialog-context";
 import { Card, CardContent } from "@acme/ui/card";
 import { useTranslation } from "~/contexts/i18n-context";
+import LearnModeDialog from "./learn-mode-dialog";
+import { useState } from "react";
 
 const StudyModes = ({ studySetId, session }: { studySetId: string, session: Session | null }) => {
   const { t } = useTranslation();
   const { onOpenChange } = useSignInDialogContext();
+  const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   
   const modes = [
-    { Icon: Copy, text: t("flashcards"), href: `${studySetId}/flashcards`, requiresAuth: false },
-    { Icon: GraduationCap, text: t("learn"), href: `${studySetId}/learn`, requiresAuth: true },
-    { Icon: FilePen, text: t("test"), href: `${studySetId}/test`, requiresAuth: true },
-    { Icon: Puzzle, text: t("match"), href: `${studySetId}/match`, requiresAuth: true },
+    { id: "flashcards", Icon: Copy, text: t("flashcards"), href: `${studySetId}/flashcards`, requiresAuth: false },
+    { id: "learn", Icon: GraduationCap, text: t("learn"), href: `${studySetId}/learn`, requiresAuth: true },
+    { id: "test", Icon: FilePen, text: t("test"), href: `${studySetId}/test`, requiresAuth: true },
+    { id: "match", Icon: Puzzle, text: t("match"), href: `${studySetId}/match`, requiresAuth: true },
   ];
 
-  const handleModeClick = (e: React.MouseEvent<HTMLAnchorElement>, requiresAuth: boolean) => {
+  const handleModeClick = (e: React.MouseEvent<HTMLAnchorElement>, requiresAuth: boolean, id: string) => {
     if (requiresAuth && !session) {
       e.preventDefault();
       onOpenChange(true);
+      return;
+    }
+    if (id === "learn") {
+      e.preventDefault();
+      setIsLearnModalOpen(true);
     }
   };
 
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {modes.map(({ href, Icon, text, requiresAuth }, index) => (
-        <Link href={href} key={index} onClick={(e) => handleModeClick(e, requiresAuth)}>
+      {modes.map(({ id, href, Icon, text, requiresAuth }, index) => (
+        <Link href={href} key={index} onClick={(e) => handleModeClick(e, requiresAuth, id)}>
           <Card className="group hover:shadow-md cursor-pointer select-none">
             <CardContent className="flex items-center gap-2 p-4">
               <Icon
@@ -41,6 +49,11 @@ const StudyModes = ({ studySetId, session }: { studySetId: string, session: Sess
           </Card>
         </Link>
       ))}
+      <LearnModeDialog 
+        open={isLearnModalOpen} 
+        onOpenChange={setIsLearnModalOpen} 
+        studySetId={studySetId} 
+      />
     </div>
   );
 };

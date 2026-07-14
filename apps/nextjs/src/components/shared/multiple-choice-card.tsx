@@ -46,7 +46,7 @@ const MultipleChoiceCard = forwardRef<
             <div className="mb-4 flex items-center gap-3">
               <span className="font-semibold text-muted-foreground">Chọn đáp án</span>
               {isReviewMode && (
-                <span className="text-red-500 font-bold text-sm animate-pulse">
+                <span className="bg-slate-400 dark:bg-slate-600 text-white px-3 py-0.5 rounded-full text-xs font-bold tracking-wide">
                   Hãy thử lại lần nữa
                 </span>
               )}

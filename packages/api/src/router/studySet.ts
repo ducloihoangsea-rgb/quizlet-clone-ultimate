@@ -295,7 +295,10 @@ export const studySetRouter = {
       return matchCards;
     }),
   learnCards: publicProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ 
+      id: z.string(),
+      goal: z.enum(["cramming", "spaced_repetition"]).optional(),
+    }))
     .query(async ({ input, ctx }) => {
       const flashcards = await getStudySetFlashcardsQuery(ctx.db, input.id);
       
@@ -312,12 +315,25 @@ export const studySetRouter = {
         
         const now = new Date();
         dueCards = flashcards.filter(card => {
+          if (input.goal === "cramming") return true;
+          
           const p = progressMap.get(card.id);
           if (!p) return true; // Thẻ mới
-          if (p.srsStep < 3) return true; // Đang học
           if (new Date(p.nextReviewDate) <= now) return true; // Tới hạn ôn tập
           return false;
         });
+
+        if (input.goal === "cramming") {
+          // Ưu tiên thẻ chưa học (unseen) hoặc thẻ có level thấp (thường trả lời sai)
+          dueCards.sort((a, b) => {
+             const pA = progressMap.get(a.id);
+             const pB = progressMap.get(b.id);
+             if (!pA && !pB) return 0;
+             if (!pA) return -1;
+             if (!pB) return 1;
+             return pA.srsStep - pB.srsStep;
+          });
+        }
 
       }
 

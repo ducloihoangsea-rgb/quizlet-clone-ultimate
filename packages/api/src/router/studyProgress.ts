@@ -109,28 +109,23 @@ export const studyProgressRouter = {
         };
       }
 
-      let { repetition, interval, easeFactor, srsStep } = progress;
+      let { srsStep, easeFactor, repetition } = progress;
       const { grade } = input;
 
       if (grade >= 3) {
-        // Correct response
-        if (repetition === 0) interval = 1;
-        else if (repetition === 1) interval = 6;
-        else interval = Math.round(interval * easeFactor);
-        repetition += 1;
-        srsStep = Math.min(srsStep + 1, 3);
+        // Correct response -> Level Up
+        srsStep = Math.min(7, srsStep + 1);
       } else {
-        // Incorrect response
-        repetition = 0;
-        interval = 1;
-        srsStep = 1;
+        // Incorrect response -> Level Down
+        srsStep = Math.max(0, srsStep - 1);
       }
 
-      easeFactor = easeFactor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
-      if (easeFactor < 1.3) easeFactor = 1.3;
+      // 0: chưa thuộc, 1: 1h, 2: 1d, 3: 3d, 4: 7d, 5: 21d, 6: 56d, 7: 150d
+      const intervalsInDays = [0, 1 / 24, 1, 3, 7, 21, 56, 150];
+      const interval = intervalsInDays[srsStep] ?? 0;
 
       const nextReviewDate = new Date();
-      nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+      nextReviewDate.setTime(nextReviewDate.getTime() + interval * 24 * 60 * 60 * 1000);
 
       await ctx.db
         .insert(StudyProgress)

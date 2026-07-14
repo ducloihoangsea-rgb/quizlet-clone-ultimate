@@ -45,13 +45,13 @@ const defaultConfig: LearnConfig = {
   textToSpeech: false,
 };
 
-const LearnMode = ({ session }: { session: Session | null }) => {
+const LearnMode = ({ session, goal }: { session: Session | null, goal?: "cramming" | "spaced_repetition" }) => {
   const { id }: { id: string } = useParams();
   const router = useRouter();
   const { t } = useTranslation();
 
   const [flashcards] = api.studySet.learnCards.useSuspenseQuery(
-    { id },
+    { id, goal },
     {
       refetchOnMount: false,
       refetchOnWindowFocus: false,

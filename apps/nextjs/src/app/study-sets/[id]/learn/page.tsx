@@ -22,10 +22,14 @@ export async function generateMetadata({
 
 export default async function Learn({
   params: { id },
+  searchParams,
 }: {
   params: { id: string };
+  searchParams?: { goal?: "cramming" | "spaced_repetition" };
 }) {
-  await api.studySet.learnCards.prefetch({ id });
+  const goal = searchParams?.goal;
+  
+  await api.studySet.learnCards.prefetch({ id, goal });
   await api.studySet.byId.prefetch({ id });
   const session = await auth();
 
@@ -33,7 +37,7 @@ export default async function Learn({
     <HydrateClient>
       <div className="m-auto max-w-3xl px-4">
         <StudyModeHeader currentMode="learn" studySetId={id} />
-        <LearnMode session={session} />
+        <LearnMode session={session} goal={goal} />
       </div>
     </HydrateClient>
   );
