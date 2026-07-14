@@ -870,7 +870,7 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
 
               {/* Học lại từ đầu */}
               <button
-                onClick={instantRestart}
+                onClick={handleResetProgress}
                 className="flex flex-col items-center justify-center p-6 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 dark:hover:bg-orange-900/40 border-2 border-orange-200 dark:border-orange-900 rounded-2xl shadow-sm hover:shadow transition-all active:scale-[0.98] text-center space-y-3 group"
               >
                 <div className="bg-orange-600 text-white p-3 rounded-xl group-hover:scale-110 transition-all">
