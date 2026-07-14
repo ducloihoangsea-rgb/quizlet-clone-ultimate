@@ -105,7 +105,7 @@ const FlipCardContent = ({
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center w-full h-full overflow-hidden">
-          <div className="select-none text-2xl sm:text-3xl whitespace-pre-wrap text-left max-w-full overflow-y-auto px-4 max-h-[180px] sm:max-h-[280px] leading-relaxed w-full [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-gray-600">
+          <div className="select-none text-2xl sm:text-3xl whitespace-pre-wrap text-left max-w-full overflow-y-auto px-4 py-2 max-h-full leading-relaxed w-full [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-gray-600">
             {content}
           </div>
         </div>
