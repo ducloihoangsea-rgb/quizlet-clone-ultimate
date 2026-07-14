@@ -48,10 +48,10 @@ const LearnModeDialog = ({ open, onOpenChange, studySetId }: LearnModeDialogProp
         <div className="p-6 space-y-4 pt-4">
           <button
             onClick={() => setSelectedGoal("cramming")}
-            className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between ${
+            className={`w-full text-left px-5 py-4 rounded-full border-2 transition-all flex items-center justify-between ${
               selectedGoal === "cramming"
-                ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-600/20"
-                : "border-border bg-background hover:bg-muted/50"
+                ? "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 ring-2 ring-blue-600/20"
+                : "border-border bg-background text-foreground hover:bg-muted/50"
             }`}
           >
             <span className="font-bold text-[15px]">Học nhồi nhét cho bài thi</span>
@@ -67,10 +67,10 @@ const LearnModeDialog = ({ open, onOpenChange, studySetId }: LearnModeDialogProp
 
           <button
             onClick={() => setSelectedGoal("spaced_repetition")}
-            className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between ${
+            className={`w-full text-left px-5 py-4 rounded-full border-2 transition-all flex items-center justify-between ${
               selectedGoal === "spaced_repetition"
-                ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-600/20"
-                : "border-border bg-background hover:bg-muted/50"
+                ? "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 ring-2 ring-blue-600/20"
+                : "border-border bg-background text-foreground hover:bg-muted/50"
             }`}
           >
             <span className="font-bold text-[15px]">Ghi nhớ tất cả</span>
