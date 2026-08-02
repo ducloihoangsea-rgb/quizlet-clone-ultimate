@@ -85,18 +85,12 @@ const DashboardContent = ({ userId }: { userId: string }) => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  // State lưu trữ tiến độ thực tế từ localStorage
-  const [progressMap, setProgressMap] = React.useState<Record<string, number>>({});
-
-  React.useEffect(() => {
-    const map: Record<string, number> = {};
-    studySets.forEach((set) => {
-      const learned = Number(localStorage.getItem(`study_progress_learned_${set.id}`) ?? 0);
-      const percentage = set.flashcardCount > 0 ? Math.round((learned / set.flashcardCount) * 100) : 0;
-      map[set.id] = Math.min(percentage, 100);
-    });
-    setProgressMap(map);
-  }, [studySets]);
+  // Fetch tiến độ thực tế từ DB qua tRPC
+  const studySetIds = React.useMemo(() => studySets.map((s) => s.id), [studySets]);
+  const { data: progressData } = api.studyProgress.getStudySetsProgress.useQuery(
+    { studySetIds },
+    { enabled: studySetIds.length > 0 }
+  );
 
   if (studySets.length === 0) {
     return (
@@ -190,7 +184,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
         <h2 className="text-xl font-bold mb-4 tracking-tight">{t("jumpBackIn")}</h2>
         <div className="grid gap-6 md:grid-cols-2">
           {jumpBackSets.map((set, index) => {
-            const percentage = progressMap[set.id] ?? 0;
+            const percentage = progressData?.[set.id]?.percentage ?? 0;
             return (
               <div 
                 key={set.id}

@@ -12,7 +12,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -20,14 +19,13 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
   useForm,
 } from "@acme/ui/form";
-import { Input } from "@acme/ui/input";
+import { Textarea } from "@acme/ui/textarea";
 import { toast } from "@acme/ui/toast";
 import { EditFlashcardSchema } from "@acme/validators";
 
@@ -47,7 +45,7 @@ const EditFlashcardDialog = ({ flashcard }: EditFlashcardDialogProps) => {
   const utils = api.useUtils();
   const { mutate, isPending } = api.flashcard.edit.useMutation({
     onSuccess() {
-      toast.success("Saved flashcard");
+      toast.success("Đã lưu thẻ ghi nhớ");
       setOpen(false);
       void utils.studySet.byId.invalidate({ id });
     },
@@ -58,7 +56,7 @@ const EditFlashcardDialog = ({ flashcard }: EditFlashcardDialogProps) => {
 
   useEffect(() => {
     form.reset(flashcard);
-  }, [flashcard]);
+  }, [flashcard, form]);
 
   const handleStopPropagation = (
     event: MouseEvent<HTMLElement, globalThis.MouseEvent>,
@@ -82,26 +80,27 @@ const EditFlashcardDialog = ({ flashcard }: EditFlashcardDialogProps) => {
           <Edit size={16} />
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold">Sửa</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="term"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Term</FormLabel>
                   <FormControl>
-                    <Input disabled={isPending} placeholder="2+2" {...field} />
+                    <div className="relative">
+                      <Textarea
+                        disabled={isPending}
+                        placeholder="Thuật ngữ"
+                        className="resize-none min-h-[140px] text-lg font-medium border-0 border-b-2 border-foreground/20 focus-visible:ring-0 focus-visible:border-primary rounded-none px-0 py-2 shadow-none bg-transparent"
+                        {...field}
+                      />
+                    </div>
                   </FormControl>
-                  <FormDescription>Head of your flashcard.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -111,24 +110,31 @@ const EditFlashcardDialog = ({ flashcard }: EditFlashcardDialogProps) => {
               name="definition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Definition</FormLabel>
                   <FormControl>
-                    <Input disabled={isPending} placeholder="4" {...field} />
+                    <div className="relative">
+                      <Textarea
+                        disabled={isPending}
+                        placeholder="Định nghĩa"
+                        className="resize-none min-h-[140px] text-lg font-medium border-0 border-b-2 border-foreground/20 focus-visible:ring-0 focus-visible:border-primary rounded-none px-0 py-2 shadow-none bg-transparent"
+                        {...field}
+                      />
+                    </div>
                   </FormControl>
-                  <FormDescription>Tail of your flashcard.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-4 pt-4">
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="ghost" className="font-semibold px-6">
+                  Hủy
+                </Button>
               </DialogClose>
-              <Button disabled={isPending} type="submit">
+              <Button disabled={isPending} type="submit" className="font-semibold px-8 bg-blue-600 hover:bg-blue-700 text-white">
                 {isPending ? (
                   <Loader2Icon className="size-4 animate-spin" />
                 ) : (
-                  "Save"
+                  "Lưu"
                 )}
               </Button>
             </div>

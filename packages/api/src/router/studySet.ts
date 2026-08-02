@@ -54,8 +54,9 @@ const generateMultipleChoiceCards = (
       const c = text.match(regexC)?.[1]?.trim();
       const d = text.match(regexD)?.[1]?.trim();
 
-      if (a && b && c && d) {
-        return [a, b, c, d];
+      const options = [a, b, c, d].filter(Boolean) as string[];
+      if (options.length >= 2) {
+        return options;
       }
       return null;
     };
@@ -382,13 +383,14 @@ export const studySetRouter = {
         let displayTerm = card.term;
         let displayDefinition = card.definition;
 
-        // Kiểm tra xem thẻ có phải là câu hỏi trắc nghiệm có sẵn A, B, C, D không
-        const isSelfAuthoredMC = !!(
-          card.term.match(/(?:^|\n)\s*([A|a][\.\)\-:\s]+[^\n]+)/) &&
-          card.term.match(/(?:^|\n)\s*([B|b][\.\)\-:\s]+[^\n]+)/) &&
-          card.term.match(/(?:^|\n)\s*([C|c][\.\)\-:\s]+[^\n]+)/) &&
-          card.term.match(/(?:^|\n)\s*([D|d][\.\)\-:\s]+[^\n]+)/)
-        );
+        // Kiểm tra xem thẻ có phải là câu hỏi trắc nghiệm có sẵn (A, B, C...) không
+        const isSelfAuthoredMC = (() => {
+          const a = !!card.term.match(/(?:^|\n)\s*([A|a][\.\)\-:\s]+[^\n]+)/);
+          const b = !!card.term.match(/(?:^|\n)\s*([B|b][\.\)\-:\s]+[^\n]+)/);
+          const c = !!card.term.match(/(?:^|\n)\s*([C|c][\.\)\-:\s]+[^\n]+)/);
+          const d = !!card.term.match(/(?:^|\n)\s*([D|d][\.\)\-:\s]+[^\n]+)/);
+          return [a, b, c, d].filter(Boolean).length >= 2;
+        })();
 
         if (!isSelfAuthoredMC) {
           if (input.answerWith === "term") {

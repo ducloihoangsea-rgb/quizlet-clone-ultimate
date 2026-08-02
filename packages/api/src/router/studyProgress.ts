@@ -1,10 +1,54 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { eq, and } from "@acme/db";
+import { eq, and, inArray } from "@acme/db";
 import { Flashcard, StudyProgress } from "@acme/db/schema";
 import { protectedProcedure } from "../trpc";
 
 export const studyProgressRouter = {
+  getStudySetsProgress: protectedProcedure
+    .input(z.object({ studySetIds: z.array(z.string()) }))
+    .query(async ({ ctx, input }) => {
+      if (input.studySetIds.length === 0) return {};
+
+      const flashcards = await ctx.db
+        .select({ id: Flashcard.id, studySetId: Flashcard.studySetId })
+        .from(Flashcard)
+        .where(inArray(Flashcard.studySetId, input.studySetIds));
+
+      if (flashcards.length === 0) return {};
+
+      const flashcardIds = flashcards.map((f) => f.id);
+
+      const progressList = await ctx.db.query.StudyProgress.findMany({
+        where: (p, { eq, and, inArray }) =>
+          and(
+            eq(p.userId, ctx.session.user.id),
+            inArray(p.flashcardId, flashcardIds)
+          ),
+      });
+
+      const learnedSet = new Set(
+        progressList
+          .filter((p) => p.srsStep >= 1 || p.flashcardStatus === "known")
+          .map((p) => p.flashcardId)
+      );
+
+      const result: Record<
+        string,
+        { learned: number; total: number; percentage: number }
+      > = {};
+
+      for (const setId of input.studySetIds) {
+        const setCards = flashcards.filter((f) => f.studySetId === setId);
+        const total = setCards.length;
+        const learned = setCards.filter((f) => learnedSet.has(f.id)).length;
+        const percentage = total > 0 ? Math.round((learned / total) * 100) : 0;
+        result[setId] = { learned, total, percentage };
+      }
+
+      return result;
+    }),
+
   getProgress: protectedProcedure
     .input(z.object({ studySetId: z.string() }))
     .query(async ({ ctx, input }) => {

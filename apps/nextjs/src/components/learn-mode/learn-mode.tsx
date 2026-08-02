@@ -169,7 +169,6 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
 
   const instantRestart = () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem(`study_progress_learned_${id}`);
       localStorage.removeItem(`learn_session_state_${id}`);
     }
     restart(config, true);
@@ -182,7 +181,6 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
 
   const startNewGoal = (newGoal: string) => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem(`study_progress_learned_${id}`);
       localStorage.removeItem(`learn_session_state_${id}`);
     }
     router.replace(`/study-sets/${id}/learn?goal=${newGoal}`);
@@ -263,18 +261,19 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
     cards = cards.map((card) => {
       // Kiểm tra xem thẻ ghi nhớ có phải là trắc nghiệm tự soạn (dạng A. B. C. D. trong term) hay không
       const extractMultipleChoice = (text: string) => {
-        const regexA = /(?:^|\n)\s*([A|a][.\)\-:\s]+[^\n]+)/;
-        const regexB = /(?:^|\n)\s*([B|b][.\)\-:\s]+[^\n]+)/;
-        const regexC = /(?:^|\n)\s*([C|c][.\)\-:\s]+[^\n]+)/;
-        const regexD = /(?:^|\n)\s*([D|d][.\)\-:\s]+[^\n]+)/;
+        const regexA = /(?:^|\n)\s*([A|a][\.\)\-:\s]+[^\n]+)/;
+        const regexB = /(?:^|\n)\s*([B|b][\.\)\-:\s]+[^\n]+)/;
+        const regexC = /(?:^|\n)\s*([C|c][\.\)\-:\s]+[^\n]+)/;
+        const regexD = /(?:^|\n)\s*([D|d][\.\)\-:\s]+[^\n]+)/;
 
         const a = text.match(regexA)?.[1]?.trim();
         const b = text.match(regexB)?.[1]?.trim();
         const c = text.match(regexC)?.[1]?.trim();
         const d = text.match(regexD)?.[1]?.trim();
 
-        if (a && b && c && d) {
-          return [a, b, c, d];
+        const options = [a, b, c, d].filter(Boolean) as string[];
+        if (options.length >= 2) {
+          return options;
         }
         return null;
       };
@@ -370,21 +369,7 @@ const LearnMode = ({ session, goal }: { session: Session | null, goal?: "crammin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flashcards, config.shuffle, config.starredOnly, config.answerWith]);
 
-  // Cập nhật tiến độ học tập thực tế vào localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined" && currentIndex > 0) {
-      const currentLearned = Number(localStorage.getItem(`study_progress_learned_${id}`) ?? 0);
-      if (currentIndex > currentLearned) {
-        localStorage.setItem(`study_progress_learned_${id}`, String(currentIndex));
-      }
-    }
-  }, [currentIndex, id]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && isCompleted && sessionCards.length > 0) {
-      localStorage.setItem(`study_progress_learned_${id}`, String(sessionCards.length));
-    }
-  }, [isCompleted, sessionCards.length, id]);
 
   // ─── Refs cho keyboard handler (tránh stale closures) ───
   const handlersRef = useRef({
