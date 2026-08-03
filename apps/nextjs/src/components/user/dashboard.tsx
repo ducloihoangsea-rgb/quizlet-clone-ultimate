@@ -10,7 +10,10 @@ import {
   BookOpen, 
   MoreVertical, 
   Plus,
-  Play
+  Play,
+  EyeOff,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 import { Button } from "@acme/ui/button";
@@ -109,9 +112,50 @@ const DashboardContent = ({ userId }: { userId: string }) => {
     );
   }
 
-  // Split studySets: first 2 for "Jump back in", the rest for "Recents"
-  const jumpBackSets = studySets.slice(0, 2);
+  // Carousel state
+  const carouselRef = React.useRef<HTMLDivElement>(null);
+  const [activeSlide, setActiveSlide] = React.useState(0);
+  const [hiddenSets, setHiddenSets] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem("hidden_jump_back_sets");
+      if (stored) setHiddenSets(JSON.parse(stored));
+    } catch (e) {}
+  }, []);
+
+  const handleHideSet = (id: string) => {
+    const newHidden = [...hiddenSets, id];
+    setHiddenSets(newHidden);
+    localStorage.setItem("hidden_jump_back_sets", JSON.stringify(newHidden));
+    toast.success("Đã xóa khỏi bảng tin");
+  };
+
+  // Lọc bỏ những set đã ẩn, lấy tối đa 5 set cho thanh trượt
+  const jumpBackSets = React.useMemo(() => {
+    return studySets.filter(s => !hiddenSets.includes(s.id)).slice(0, 5);
+  }, [studySets, hiddenSets]);
+
   const recentSets = studySets;
+
+  const handleScroll = () => {
+    if (carouselRef.current) {
+      const scrollLeft = carouselRef.current.scrollLeft;
+      const width = carouselRef.current.clientWidth;
+      const slideIndex = Math.round(scrollLeft / width);
+      setActiveSlide(slideIndex);
+    }
+  };
+
+  const scrollByAmount = (direction: "left" | "right") => {
+    if (carouselRef.current) {
+      const width = carouselRef.current.clientWidth;
+      const newScrollLeft = direction === "left" 
+        ? carouselRef.current.scrollLeft - width 
+        : carouselRef.current.scrollLeft + width;
+      carouselRef.current.scrollTo({ left: newScrollLeft, behavior: "smooth" });
+    }
+  };
 
   const handleQuickAction = (action: string) => {
     if (action === "create") {
@@ -180,66 +224,130 @@ const DashboardContent = ({ userId }: { userId: string }) => {
       </div>
 
       {/* Jump back in section */}
-      <div>
-        <h2 className="text-xl font-bold mb-4 tracking-tight">{t("jumpBackIn")}</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          {jumpBackSets.map((set, index) => {
-            const percentage = progressData?.[set.id]?.percentage ?? 0;
-            return (
-              <div 
-                key={set.id}
-                className="flex items-center justify-between border rounded-2xl p-6 bg-card hover:shadow-md transition-all relative overflow-hidden group min-h-[160px]"
-              >
-                {/* Information */}
-                <div className="space-y-4 flex-1 z-10 pr-4">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest block mb-0.5">CHƯƠNG {index + 5}</span>
-                    <h3 className="font-extrabold text-xl line-clamp-1 group-hover:text-primary transition-colors">
-                      {set.title}
-                    </h3>
-                  </div>
-                  
-                  <div className="space-y-2 w-full max-w-[240px]">
-                    {/* Progress bar ở trên */}
-                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                      <div 
-                        className="h-full bg-[#10b981] rounded-full transition-all duration-500" 
-                        style={{ width: `${percentage}%` }}
-                      />
+      {jumpBackSets.length > 0 && (
+        <div>
+          <h2 className="text-xl font-bold mb-4 tracking-tight">{t("jumpBackIn")}</h2>
+          <div className="relative group/carousel">
+            
+            {/* Nút lùi */}
+            <button 
+              onClick={() => scrollByAmount("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 bg-slate-800 text-white rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity shadow-lg"
+              disabled={activeSlide === 0}
+            >
+              <ChevronLeft size={24} />
+            </button>
+
+            {/* Vùng trượt (Carousel container) */}
+            <div 
+              ref={carouselRef}
+              onScroll={handleScroll}
+              className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-2"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {jumpBackSets.map((set) => {
+                const prog = progressData?.[set.id];
+                const percentage = prog?.percentage ?? 0;
+                const total = prog?.total ?? 0;
+                const learned = prog?.learned ?? 0;
+                
+                return (
+                  <div 
+                    key={set.id}
+                    className="flex items-center justify-between border-2 border-transparent rounded-2xl p-6 bg-card hover:border-border transition-all relative overflow-hidden group min-w-full md:min-w-[85%] lg:min-w-[70%] min-h-[220px] snap-center shrink-0"
+                    style={{ backgroundColor: "#1c2132" }} // Nền tối giống ảnh
+                  >
+                    {/* Information */}
+                    <div className="space-y-4 flex-1 z-10 pr-4 mt-2">
+                      <h3 className="font-extrabold text-2xl line-clamp-2 text-white">
+                        {set.title}
+                      </h3>
+                      
+                      <div className="space-y-2 w-full max-w-[280px]">
+                        {/* Progress bar ở trên */}
+                        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-700">
+                          <div 
+                            className="h-full bg-[#10b981] rounded-full transition-all duration-500" 
+                            style={{ width: `${Math.max(percentage, 5)}%` }}
+                          />
+                        </div>
+                        {/* Chữ hiển thị tiến trình ở dưới (fraction) */}
+                        <p className="text-[13px] text-slate-300 font-semibold tracking-wide flex items-center gap-2">
+                          <span className="text-[#10b981]">{percentage}%</span> 
+                          <span>&bull;</span> 
+                          <span>{learned}/{total} cards sorted</span>
+                        </p>
+                      </div>
+    
+                      <Link href={`/study-sets/${set.id}`}>
+                        <Button className="rounded-full bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold px-7 py-5 text-[15px] h-auto mt-4 active:scale-95 transition-all">
+                          {t("continue")}
+                        </Button>
+                      </Link>
                     </div>
-                    {/* Chữ hiển thị tiến trình ở dưới */}
-                    <p className="text-xs text-muted-foreground font-semibold">
-                      {percentage}% {t("questionsCompleted")}
-                    </p>
+
+                    {/* SVG Illustration side (3D Cards) */}
+                    <div className="hidden sm:block w-48 h-full shrink-0 relative opacity-90 group-hover:opacity-100 transition-opacity translate-y-4 translate-x-4">
+                      <svg viewBox="0 0 200 200" className="absolute bottom-0 right-0 w-56 h-56 -mb-6 -mr-4 drop-shadow-2xl">
+                        {/* Card 1 (Xanh nước biển chìm) */}
+                        <rect x="20" y="80" width="100" height="130" rx="8" fill="#1e3a8a" transform="rotate(-15 60 140)" />
+                        {/* Card 2 (Cam dấu X) */}
+                        <rect x="40" y="60" width="100" height="130" rx="8" fill="#9a3412" transform="rotate(-5 90 120)" />
+                        <path d="M70 100 L110 140 M110 100 L70 140" stroke="#f97316" strokeWidth="12" strokeLinecap="round" transform="rotate(-5 90 120)" />
+                        {/* Card 3 (Xanh lá dấu Check - Lên trên cùng) */}
+                        <rect x="70" y="40" width="100" height="130" rx="8" fill="#064e3b" />
+                        <rect x="70" y="40" width="100" height="130" rx="8" fill="none" stroke="#34d399" strokeWidth="2" />
+                        <path d="M100 110 L115 125 L145 80" stroke="#34d399" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
+                        <rect x="100" y="145" width="40" height="6" rx="3" fill="#34d399" />
+                        <rect x="100" y="157" width="25" height="6" rx="3" fill="#34d399" />
+                      </svg>
+                    </div>
+
+                    {/* Options button (Xóa) */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
+                          <MoreVertical size={20} />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 bg-slate-900 border-slate-700">
+                        <DropdownMenuItem 
+                          onClick={() => handleHideSet(set.id)}
+                          className="flex items-center gap-3 cursor-pointer py-2.5 px-3 font-semibold text-sm rounded-lg text-slate-200 hover:bg-slate-800 hover:text-white"
+                        >
+                          <EyeOff size={18} />
+                          <span>Xóa</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
- 
-                  <Link href={`/study-sets/${set.id}`}>
-                    <Button className="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 text-xs h-auto mt-2 active:scale-95 transition-all">
-                      {t("continue")}
-                    </Button>
-                  </Link>
-                </div>
+                );
+              })}
+            </div>
 
-                {/* SVG Illustration side */}
-                <div className="hidden sm:block w-36 h-full shrink-0 relative opacity-85 group-hover:opacity-100 transition-opacity">
-                  <svg className="w-full h-full text-blue-500/10 dark:text-blue-400/5" viewBox="0 0 100 100" fill="none">
-                    <rect x="10" y="20" width="50" height="60" rx="6" stroke="currentColor" strokeWidth="2" />
-                    <line x1="20" y1="35" x2="50" y2="35" stroke="currentColor" strokeWidth="2" />
-                    <line x1="20" y1="45" x2="40" y2="45" stroke="currentColor" strokeWidth="2" />
-                    <circle cx="75" cy="40" r="15" stroke="currentColor" strokeWidth="2" />
-                    <rect x="65" y="65" width="25" height="15" rx="3" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                </div>
+            {/* Nút tiến */}
+            <button 
+              onClick={() => scrollByAmount("right")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 bg-slate-800 text-white rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity shadow-lg"
+              disabled={activeSlide === jumpBackSets.length - 1}
+            >
+              <ChevronRight size={24} />
+            </button>
 
-                {/* Options button */}
-                <button className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-                  <MoreVertical size={18} />
-                </button>
+            {/* Dots */}
+            {jumpBackSets.length > 1 && (
+              <div className="flex justify-center gap-2 mt-6 mb-2">
+                {jumpBackSets.map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={`h-2 rounded-full transition-all ${i === activeSlide ? "w-6 bg-slate-300" : "w-2 bg-slate-600"}`}
+                  />
+                ))}
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Recents section */}
       <div>
