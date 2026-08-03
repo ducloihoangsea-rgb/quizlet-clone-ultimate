@@ -242,7 +242,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
             <div 
               ref={carouselRef}
               onScroll={handleScroll}
-              className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 pb-2 px-[5%] md:px-[15%]"
+              className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-2 px-[2%] md:px-[7%]"
               style={{ 
                 scrollbarWidth: "none", 
                 msOverflowStyle: "none",
@@ -250,7 +250,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                 maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
               }}
             >
-              {jumpBackSets.map((set) => {
+              {jumpBackSets.map((set, index) => {
                 const prog = progressData?.[set.id];
                 const percentage = prog?.percentage ?? 0;
                 const total = prog?.total ?? 0;
@@ -259,8 +259,11 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                 return (
                   <div 
                     key={set.id}
-                    className="flex items-center justify-between border-2 border-border/50 rounded-2xl p-6 bg-card text-card-foreground hover:border-border transition-all relative overflow-hidden group min-w-[85%] md:min-w-[70%] min-h-[220px] snap-center shrink-0 shadow-sm"
+                    className="flex items-center justify-between border-2 border-border/50 rounded-2xl p-6 bg-card text-card-foreground hover:border-border transition-all relative overflow-hidden group min-w-[96%] md:min-w-[86%] min-h-[220px] snap-center shrink-0 shadow-sm"
                   >
+                    {/* Darken overlay cho thẻ không được focus */}
+                    <div className={`absolute inset-0 bg-black/60 z-40 pointer-events-none transition-opacity duration-300 ${index === activeSlide ? "opacity-0" : "opacity-100"}`} />
+
                     {/* Information */}
                     <div className="space-y-4 flex-1 z-10 pr-4 mt-2">
                       <h3 className="font-extrabold text-2xl line-clamp-2 text-foreground">
