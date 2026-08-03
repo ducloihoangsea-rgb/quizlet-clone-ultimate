@@ -267,9 +267,6 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                     key={set.id}
                     className="flex items-center justify-between border-2 border-border/50 rounded-2xl p-6 bg-card text-card-foreground hover:border-border transition-all relative overflow-hidden group min-w-[96%] md:min-w-[86%] min-h-[220px] snap-center shrink-0 shadow-sm"
                   >
-                    {/* Darken overlay cho thẻ không được focus */}
-                    <div className={`absolute inset-0 bg-black/60 z-40 pointer-events-none transition-opacity duration-300 ${index === activeSlide ? "opacity-0" : "opacity-100"}`} />
-
                     {/* Information */}
                     <div className="space-y-4 flex-1 z-10 pr-4 mt-2">
                       <h3 className="font-extrabold text-2xl line-clamp-2 text-foreground">
