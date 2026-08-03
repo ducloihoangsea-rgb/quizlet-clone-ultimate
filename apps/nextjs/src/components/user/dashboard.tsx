@@ -232,7 +232,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
             {/* Nút lùi */}
             <button 
               onClick={() => scrollByAmount("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 bg-slate-800 text-white rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity shadow-lg"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 bg-secondary text-secondary-foreground border border-border rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity shadow-lg hover:bg-secondary/80"
               disabled={activeSlide === 0}
             >
               <ChevronLeft size={24} />
@@ -259,32 +259,32 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                 return (
                   <div 
                     key={set.id}
-                    className="flex items-center justify-between border-2 border-transparent rounded-2xl p-6 bg-slate-100 dark:bg-[#1c2132] hover:border-slate-300 dark:hover:border-slate-700 transition-all relative overflow-hidden group min-w-[85%] md:min-w-[70%] min-h-[220px] snap-center shrink-0"
+                    className="flex items-center justify-between border-2 border-border/50 rounded-2xl p-6 bg-card text-card-foreground hover:border-border transition-all relative overflow-hidden group min-w-[85%] md:min-w-[70%] min-h-[220px] snap-center shrink-0 shadow-sm"
                   >
                     {/* Information */}
                     <div className="space-y-4 flex-1 z-10 pr-4 mt-2">
-                      <h3 className="font-extrabold text-2xl line-clamp-2 text-slate-900 dark:text-white">
+                      <h3 className="font-extrabold text-2xl line-clamp-2 text-foreground">
                         {set.title}
                       </h3>
                       
                       <div className="space-y-2 w-full max-w-[280px]">
                         {/* Progress bar ở trên */}
-                        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
+                        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-secondary">
                           <div 
-                            className="h-full bg-[#10b981] rounded-full transition-all duration-500" 
+                            className="h-full bg-primary rounded-full transition-all duration-500" 
                             style={{ width: `${Math.max(percentage, 5)}%` }}
                           />
                         </div>
                         {/* Chữ hiển thị tiến trình ở dưới (fraction) */}
-                        <p className="text-[13px] text-slate-600 dark:text-slate-300 font-semibold tracking-wide flex items-center gap-2">
-                          <span className="text-[#10b981]">{percentage}%</span> 
+                        <p className="text-[13px] text-muted-foreground font-semibold tracking-wide flex items-center gap-2">
+                          <span className="text-primary">{percentage}%</span> 
                           <span>&bull;</span> 
                           <span>{learned}/{total} cards sorted</span>
                         </p>
                       </div>
     
                       <Link href={`/study-sets/${set.id}`}>
-                        <Button className="rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-[#4f46e5] dark:hover:bg-[#4338ca] text-white font-bold px-7 py-5 text-[15px] h-auto mt-4 active:scale-95 transition-all shadow-sm">
+                        <Button className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-7 py-5 text-[15px] h-auto mt-4 active:scale-95 transition-all shadow-sm">
                           {t("continue")}
                         </Button>
                       </Link>
@@ -294,30 +294,30 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                     <div className="hidden sm:block w-48 h-full shrink-0 relative opacity-90 group-hover:opacity-100 transition-opacity translate-y-4 translate-x-4">
                       <svg viewBox="0 0 200 200" className="absolute bottom-0 right-0 w-56 h-56 -mb-6 -mr-4 drop-shadow-2xl">
                         {/* Card 1 (Xanh nước biển chìm) */}
-                        <rect x="20" y="80" width="100" height="130" rx="8" className="fill-blue-800 dark:fill-[#1e3a8a]" transform="rotate(-15 60 140)" />
+                        <rect x="20" y="80" width="100" height="130" rx="8" className="fill-blue-600/80 dark:fill-[#1e3a8a] dracula:fill-[#bd93f9]" transform="rotate(-15 60 140)" />
                         {/* Card 2 (Cam dấu X) */}
-                        <rect x="40" y="60" width="100" height="130" rx="8" className="fill-orange-700 dark:fill-[#9a3412]" transform="rotate(-5 90 120)" />
-                        <path d="M70 100 L110 140 M110 100 L70 140" className="stroke-orange-400 dark:stroke-[#f97316]" strokeWidth="12" strokeLinecap="round" transform="rotate(-5 90 120)" />
+                        <rect x="40" y="60" width="100" height="130" rx="8" className="fill-orange-600/80 dark:fill-[#9a3412] dracula:fill-[#ffb86c]" transform="rotate(-5 90 120)" />
+                        <path d="M70 100 L110 140 M110 100 L70 140" className="stroke-orange-200 dark:stroke-[#f97316] dracula:stroke-[#282a36]" strokeWidth="12" strokeLinecap="round" transform="rotate(-5 90 120)" />
                         {/* Card 3 (Xanh lá dấu Check - Lên trên cùng) */}
-                        <rect x="70" y="40" width="100" height="130" rx="8" className="fill-emerald-800 dark:fill-[#064e3b]" />
-                        <rect x="70" y="40" width="100" height="130" rx="8" fill="none" className="stroke-emerald-400 dark:stroke-[#34d399]" strokeWidth="2" />
-                        <path d="M100 110 L115 125 L145 80" className="stroke-emerald-400 dark:stroke-[#34d399]" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
-                        <rect x="100" y="145" width="40" height="6" rx="3" className="fill-emerald-400 dark:fill-[#34d399]" />
-                        <rect x="100" y="157" width="25" height="6" rx="3" className="fill-emerald-400 dark:fill-[#34d399]" />
+                        <rect x="70" y="40" width="100" height="130" rx="8" className="fill-emerald-600/90 dark:fill-[#064e3b] dracula:fill-[#50fa7b]" />
+                        <rect x="70" y="40" width="100" height="130" rx="8" fill="none" className="stroke-emerald-300 dark:stroke-[#34d399] dracula:stroke-[#50fa7b]" strokeWidth="2" />
+                        <path d="M100 110 L115 125 L145 80" className="stroke-emerald-100 dark:stroke-[#34d399] dracula:stroke-[#282a36]" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
+                        <rect x="100" y="145" width="40" height="6" rx="3" className="fill-emerald-300 dark:fill-[#34d399] dracula:fill-[#282a36]/50" />
+                        <rect x="100" y="157" width="25" height="6" rx="3" className="fill-emerald-300 dark:fill-[#34d399] dracula:fill-[#282a36]/50" />
                       </svg>
                     </div>
 
                     {/* Options button (Xóa) */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        <button className="absolute top-4 right-4 text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-accent transition-colors">
                           <MoreVertical size={20} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+                      <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
                         <DropdownMenuItem 
                           onClick={() => handleHideSet(set.id)}
-                          className="flex items-center gap-3 cursor-pointer py-2.5 px-3 font-semibold text-sm rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                          className="flex items-center gap-3 cursor-pointer py-2.5 px-3 font-semibold text-sm rounded-lg text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                         >
                           <EyeOff size={18} />
                           <span>Xóa</span>
@@ -332,7 +332,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
             {/* Nút tiến */}
             <button 
               onClick={() => scrollByAmount("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 bg-slate-800 text-white rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity shadow-lg"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 bg-secondary text-secondary-foreground border border-border rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity shadow-lg hover:bg-secondary/80"
               disabled={activeSlide === jumpBackSets.length - 1}
             >
               <ChevronRight size={24} />
@@ -344,7 +344,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                 {jumpBackSets.map((_, i) => (
                   <div 
                     key={i} 
-                    className={`h-2 rounded-full transition-all ${i === activeSlide ? "w-6 bg-slate-300" : "w-2 bg-slate-600"}`}
+                    className={`h-2 rounded-full transition-all ${i === activeSlide ? "w-6 bg-primary" : "w-2 bg-secondary"}`}
                   />
                 ))}
               </div>
