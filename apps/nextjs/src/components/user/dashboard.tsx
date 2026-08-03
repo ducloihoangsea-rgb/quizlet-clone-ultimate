@@ -139,20 +139,26 @@ const DashboardContent = ({ userId }: { userId: string }) => {
   const recentSets = studySets;
 
   const handleScroll = () => {
-    if (carouselRef.current) {
+    if (carouselRef.current && carouselRef.current.children.length > 0) {
       const scrollLeft = carouselRef.current.scrollLeft;
-      const width = carouselRef.current.clientWidth;
-      const slideIndex = Math.round(scrollLeft / width);
+      const cardWidth = (carouselRef.current.children[0] as HTMLElement).offsetWidth;
+      const gap = 16; // gap-4 is 16px
+      // Khoảng cách cuộn của 1 thẻ
+      const scrollDistance = cardWidth + gap;
+      const slideIndex = Math.round(scrollLeft / scrollDistance);
       setActiveSlide(slideIndex);
     }
   };
 
   const scrollByAmount = (direction: "left" | "right") => {
-    if (carouselRef.current) {
-      const width = carouselRef.current.clientWidth;
+    if (carouselRef.current && carouselRef.current.children.length > 0) {
+      const cardWidth = (carouselRef.current.children[0] as HTMLElement).offsetWidth;
+      const gap = 16;
+      const scrollDistance = cardWidth + gap;
+      
       const newScrollLeft = direction === "left" 
-        ? carouselRef.current.scrollLeft - width 
-        : carouselRef.current.scrollLeft + width;
+        ? carouselRef.current.scrollLeft - scrollDistance 
+        : carouselRef.current.scrollLeft + scrollDistance;
       carouselRef.current.scrollTo({ left: newScrollLeft, behavior: "smooth" });
     }
   };
