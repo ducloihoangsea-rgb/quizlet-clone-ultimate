@@ -274,20 +274,20 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                         {/* Progress bar ở trên */}
                         <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-secondary">
                           <div 
-                            className="h-full bg-primary rounded-full transition-all duration-500" 
+                            className="h-full bg-[#10b981] rounded-full transition-all duration-500" 
                             style={{ width: `${Math.max(percentage, 5)}%` }}
                           />
                         </div>
                         {/* Chữ hiển thị tiến trình ở dưới (fraction) */}
                         <p className="text-[13px] text-muted-foreground font-semibold tracking-wide flex items-center gap-2">
-                          <span className="text-primary">{percentage}%</span> 
+                          <span className="text-[#10b981]">{percentage}%</span> 
                           <span>&bull;</span> 
                           <span>{learned}/{total} cards sorted</span>
                         </p>
                       </div>
     
                       <Link href={`/study-sets/${set.id}`}>
-                        <Button className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-7 py-5 text-[15px] h-auto mt-4 active:scale-95 transition-all shadow-sm">
+                        <Button className="rounded-full bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold px-7 py-5 text-[15px] h-auto mt-4 active:scale-95 transition-all shadow-sm">
                           {t("continue")}
                         </Button>
                       </Link>
@@ -347,7 +347,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                 {jumpBackSets.map((_, i) => (
                   <div 
                     key={i} 
-                    className={`h-2 rounded-full transition-all ${i === activeSlide ? "w-6 bg-primary" : "w-2 bg-secondary"}`}
+                    className={`h-2 rounded-full transition-all ${i === activeSlide ? "w-6 bg-[#4f46e5]" : "w-2 bg-secondary"}`}
                   />
                 ))}
               </div>
