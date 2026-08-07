@@ -29,6 +29,8 @@ export async function generateMetadata({
   };
 }
 
+import SpacedRepetitionGrid from "~/components/study-set/spaced-repetition-grid";
+
 export default async function StudySet({ params: { id } }: StudySetProps) {
   const { userId, user } = await api.studySet.byId({ id });
   const otherStudySets = await api.studySet.other({
@@ -56,6 +58,7 @@ export default async function StudySet({ params: { id } }: StudySetProps) {
             <CreatedBy user={user} />
             <StudySetCTA session={session} userId={userId} id={id} />
           </div>
+          <SpacedRepetitionGrid session={session} />
           <StudySetFlashcards session={session} />
           {userId === session?.user.id && (
             <EditStudySetButton id={id} />

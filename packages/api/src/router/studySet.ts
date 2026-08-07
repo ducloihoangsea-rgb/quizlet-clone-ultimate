@@ -150,9 +150,20 @@ export const studySetRouter = {
 
       const starredFlashcards = await getStarredFlashcards(ctx, input.id);
 
+      let progressMap = new Map();
+      if (ctx.session) {
+        const userId = ctx.session.user.id;
+        const progressList = await ctx.db.query.StudyProgress.findMany({
+          where: (p, { inArray }) => 
+            inArray(p.flashcardId, studySet.flashcards.map(f => f.id)),
+        });
+        progressMap = new Map(progressList.filter(p => p.userId === userId).map(p => [p.flashcardId, p]));
+      }
+
       const updatedFlashcards = studySet.flashcards.map((flashcard) => ({
         ...flashcard,
         starred: starredFlashcards.some(({ id }) => id === flashcard.id),
+        progress: progressMap.get(flashcard.id) ?? null,
       }));
 
       // TODO: Get only session.user folders of this set
