@@ -1,0 +1,1 @@
+"Đọc file repomix-output.xml để hiểu toàn bộ sơ đồ hàm và loại dữ liệu trong dự án, sau đó sửa lỗi X mà không làm ảnh hưởng tới các file khác."
