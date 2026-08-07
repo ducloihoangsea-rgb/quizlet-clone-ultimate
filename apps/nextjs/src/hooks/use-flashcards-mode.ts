@@ -9,12 +9,12 @@ import { useFlashcardsModeReducer } from "./use-flashcards-mode-reducer";
 export function useFlashcardsMode(id: string) {
   const [{ flashcards: initialFlashcards }] =
     api.studySet.byId.useSuspenseQuery({ id });
-  const [studyProgress] = api.studyProgress.getProgress.useSuspenseQuery({ studySetId: id });
+  const { data: studyProgress } = api.studyProgress.getProgress.useQuery({ studySetId: id });
   const { mutate: updateStatus } = api.studyProgress.updateFlashcardStatus.useMutation();
   const { mutate: resetProgressMutation } = api.studyProgress.resetFlashcardProgress.useMutation();
 
   const [{ sorting, flashcards, index, starredOnly, hard, know, trackProgress, learningCount, knownCount, history, frontFace, textToSpeech }, dispatch] =
-    useFlashcardsModeReducer(initialFlashcards, studyProgress);
+    useFlashcardsModeReducer(initialFlashcards, studyProgress ?? []);
 
   const [cardRef, animateCard] = useAnimate();
   const [messageRef, animateMessage] = useAnimate();
