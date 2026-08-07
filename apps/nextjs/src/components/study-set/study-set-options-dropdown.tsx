@@ -22,6 +22,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@acme/ui/tooltip";
 
 import { useTranslation } from "~/contexts/i18n-context";
+import { api } from "~/trpc/react";
 import DeleteStudySetDialog from "./delete-study-set-dialog";
 import StudySetCombineDialog from "./study-set-combine-dialog";
 import StudySetExportDialog from "./study-set-export-dialog";
