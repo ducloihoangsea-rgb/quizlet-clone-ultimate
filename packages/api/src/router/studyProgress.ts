@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { eq, and, inArray } from "@acme/db";
 import { Flashcard, StudyProgress } from "@acme/db/schema";
-import { protectedProcedure } from "../trpc";
+import { protectedProcedure, publicProcedure } from "../trpc";
 
 export const studyProgressRouter = {
   getStudySetsProgress: protectedProcedure
@@ -49,9 +49,11 @@ export const studyProgressRouter = {
       return result;
     }),
 
-  getProgress: protectedProcedure
+  getProgress: publicProcedure
     .input(z.object({ studySetId: z.string() }))
     .query(async ({ ctx, input }) => {
+      if (!ctx.session?.user) return [];
+
       // Get all flashcards for this study set
       const flashcards = await ctx.db
         .select({ id: Flashcard.id })
