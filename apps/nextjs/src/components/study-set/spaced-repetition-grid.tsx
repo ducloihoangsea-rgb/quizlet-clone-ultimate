@@ -78,7 +78,7 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
       // @ts-ignore
       if (card.progress) {
          // @ts-ignore
-         lvl = Math.min(card.progress.repetition || 0, 7);
+         lvl = Math.min(card.progress.srsStep || 0, 7);
       }
       map.get(lvl)?.push(card);
     });
