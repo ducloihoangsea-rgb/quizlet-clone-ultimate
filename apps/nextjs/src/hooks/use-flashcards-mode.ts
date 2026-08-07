@@ -6,7 +6,7 @@ import { useAnimate } from "framer-motion";
 import { api } from "~/trpc/react";
 import { useFlashcardsModeReducer } from "./use-flashcards-mode-reducer";
 
-export function useFlashcardsMode(id: string) {
+export function useFlashcardsMode(id: string, level?: number) {
   const [{ flashcards: initialFlashcards }] =
     api.studySet.byId.useSuspenseQuery({ id });
   const { data: studyProgress } = api.studyProgress.getProgress.useQuery({ studySetId: id });
@@ -14,7 +14,7 @@ export function useFlashcardsMode(id: string) {
   const { mutate: resetProgressMutation } = api.studyProgress.resetFlashcardProgress.useMutation();
 
   const [{ sorting, flashcards, index, starredOnly, hard, know, trackProgress, learningCount, knownCount, history, frontFace, textToSpeech }, dispatch] =
-    useFlashcardsModeReducer(initialFlashcards, studyProgress ?? []);
+    useFlashcardsModeReducer(initialFlashcards, studyProgress ?? [], level);
 
   const [cardRef, animateCard] = useAnimate();
   const [messageRef, animateMessage] = useAnimate();

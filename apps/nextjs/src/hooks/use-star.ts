@@ -5,7 +5,7 @@ import type { RouterOutputs } from "@acme/api";
 import { api } from "~/trpc/react";
 
 export default function useStar(
-  flashcard: RouterOutputs["studySet"]["byId"]["flashcards"][0],
+  flashcard: { id: number; starred?: boolean },
 ) {
   const utils = api.useUtils();
   const { id }: { id: string } = useParams();

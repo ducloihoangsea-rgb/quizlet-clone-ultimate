@@ -23,14 +23,19 @@ export async function generateMetadata({
 
 export default async function FlashcardsMode({
   params: { id },
-}: FlashcardsModeProps) {
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { level?: string };
+}) {
+  const level = searchParams?.level !== undefined ? parseInt(searchParams.level) : undefined;
   const { userId } = await api.studySet.byId({ id });
   await api.studyProgress.getProgress.prefetch({ studySetId: id });
   const session = await auth();
 
   return (
     <HydrateClient>
-      <FlashcardsModeProvider id={id}>
+      <FlashcardsModeProvider id={id} level={level}>
         <div className="m-auto max-w-5xl px-4">
           <StudyModeHeader currentMode="flashcards" studySetId={id} />
           <FlashcardsGame fullscreen session={session} editable={userId === session?.user?.id} />

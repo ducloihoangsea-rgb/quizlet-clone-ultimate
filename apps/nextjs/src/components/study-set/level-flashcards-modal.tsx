@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { cn } from "@acme/ui";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import { type SelectFlashcard } from "@acme/db/schema";
 import { useTranslation } from "~/contexts/i18n-context";
 
@@ -19,6 +21,7 @@ export default function LevelFlashcardsModal({
   now: Date;
 }) {
   const { t } = useTranslation();
+  const { id } = useParams() as { id: string };
   
   // lock body scroll
   useEffect(() => {
@@ -94,8 +97,16 @@ export default function LevelFlashcardsModal({
             </div>
             
             {/* Footer */}
-            <div className="p-4 border-t border-border bg-card rounded-b-2xl flex justify-end">
-                <button onClick={onClose} className="px-5 py-2.5 bg-muted hover:bg-muted/80 border border-border rounded-lg font-bold transition-all text-sm text-foreground shadow-sm">{t("closeModalBtn")}</button>
+            <div className="p-4 border-t border-border bg-card rounded-b-2xl flex justify-between items-center gap-4">
+                <div className="flex gap-2">
+                    <Link href={`/study-sets/${id}/flashcards?level=${level.level}`} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-all text-sm shadow-sm flex items-center justify-center">
+                        {t("flashcards")}
+                    </Link>
+                    <Link href={`/study-sets/${id}/learn?level=${level.level}`} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-all text-sm shadow-sm flex items-center justify-center">
+                        {t("learn")}
+                    </Link>
+                </div>
+                <button onClick={onClose} className="px-5 py-2.5 bg-muted hover:bg-muted/80 border border-border rounded-lg font-bold transition-all text-sm text-foreground shadow-sm shrink-0">{t("closeModalBtn")}</button>
             </div>
         </div>
     </div>

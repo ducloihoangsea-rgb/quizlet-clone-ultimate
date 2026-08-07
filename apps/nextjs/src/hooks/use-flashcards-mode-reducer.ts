@@ -174,19 +174,35 @@ export const flashcardsReducer = (
   };
 };
 
-export const useFlashcardsModeReducer = (flashcards: Flashcards, progress: Progress) => {
+export const useFlashcardsModeReducer = (flashcards: Flashcards, progress: Progress, level?: number) => {
   const progressMap = new Map(progress.map((p) => [p.flashcardId, p.flashcardStatus]));
-  
-  const learningCards = flashcards.filter((c) => progressMap.get(c.id) === "learning");
-  const unseenCards = flashcards.filter(
+  const progressFullMap = new Map(progress.map((p) => [p.flashcardId, p]));
+
+  let filteredFlashcards = flashcards;
+  if (level !== undefined) {
+    const now = new Date();
+    filteredFlashcards = flashcards.filter(card => {
+      const p = progressFullMap.get(card.id);
+      const cardLevel = p ? Math.min(p.srsStep || 0, 7) : 0;
+      if (cardLevel !== level) return false;
+      
+      if (!p) return true;
+      if (p.nextReviewDate && new Date(p.nextReviewDate) <= now) return true;
+      return false;
+    });
+  }
+
+  const learningCards = (level !== undefined ? filteredFlashcards : flashcards).filter((c) => progressMap.get(c.id) === "learning");
+  const unseenCards = (level !== undefined ? filteredFlashcards : flashcards).filter(
     (c) => !progressMap.has(c.id) || progressMap.get(c.id) === "unseen"
   );
   
   // Nếu có thẻ đang học hoặc chưa xem thì kết hợp lại, nếu không thì lấy toàn bộ (trường hợp đã học hết)
-  const remainingCards =
-    learningCards.length > 0 || unseenCards.length > 0
+  const remainingCards = level !== undefined 
+    ? filteredFlashcards
+    : (learningCards.length > 0 || unseenCards.length > 0
       ? [...learningCards, ...unseenCards]
-      : flashcards;
+      : flashcards);
 
   const learningCount = learningCards.length;
   const knownCount = progress.filter((p) => p.flashcardStatus === "known").length;

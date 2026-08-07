@@ -310,6 +310,7 @@ export const studySetRouter = {
     .input(z.object({ 
       id: z.string(),
       goal: z.enum(["cramming", "spaced_repetition"]).optional(),
+      level: z.number().optional(),
     }))
     .query(async ({ input, ctx }) => {
       const flashcards = await getStudySetFlashcardsQuery(ctx.db, input.id);
@@ -330,6 +331,12 @@ export const studySetRouter = {
           if (input.goal === "cramming") return true;
           
           const p = progressMap.get(card.id);
+          
+          if (input.level !== undefined) {
+            const cardLevel = p ? Math.min(p.srsStep || 0, 7) : 0;
+            if (cardLevel !== input.level) return false;
+          }
+
           if (!p) return true; // Thẻ mới
           if (new Date(p.nextReviewDate) <= now) return true; // Tới hạn ôn tập
           return false;

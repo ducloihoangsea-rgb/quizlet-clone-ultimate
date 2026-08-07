@@ -14,8 +14,9 @@ const FlashcardsModeContext = createContext<FlashcardsModeContext | undefined>(
 export default function FlashcardsModeProvider({
   children,
   id,
-}: PropsWithChildren & { id: string }) {
-  const value = useFlashcardsMode(id);
+  level,
+}: PropsWithChildren & { id: string, level?: number }) {
+  const value = useFlashcardsMode(id, level);
 
   return (
     <FlashcardsModeContext.Provider value={value}>

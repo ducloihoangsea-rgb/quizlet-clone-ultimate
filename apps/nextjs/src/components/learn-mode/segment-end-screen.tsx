@@ -13,7 +13,7 @@ import { Separator } from "@acme/ui/separator";
 import { useSignInDialogContext } from "~/contexts/sign-in-dialog-context";
 import useStar from "~/hooks/use-star";
 
-type Flashcard = RouterOutputs["studySet"]["byId"]["flashcards"][number];
+type Flashcard = RouterOutputs["studySet"]["learnCards"][number];
 type FlashcardWithAnswers = Flashcard & { answers: string[] };
 
 // ─── Sub-component cho mỗi thẻ (để gọi useStar hook ở component level) ───
