@@ -42,6 +42,8 @@ export default async function StudySet({ params: { id } }: StudySetProps) {
 
   const session = await auth();
 
+  await api.studyProgress.getProgress.prefetch({ studySetId: id });
+
   if (session) {
     await api.folder.allByUser.prefetch({ userId: session.user.id });
     await api.studySet.allByUser.prefetch({ userId: session.user.id });
