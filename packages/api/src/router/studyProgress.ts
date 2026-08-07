@@ -52,7 +52,8 @@ export const studyProgressRouter = {
   getProgress: publicProcedure
     .input(z.object({ studySetId: z.string() }))
     .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user) return [];
+      const userId = ctx.session?.user?.id;
+      if (!userId) return [];
 
       // Get all flashcards for this study set
       const flashcards = await ctx.db
@@ -70,7 +71,7 @@ export const studyProgressRouter = {
       const progress = await ctx.db.query.StudyProgress.findMany({
         where: (progress, { eq, and, inArray }) =>
           and(
-            eq(progress.userId, ctx.session.user.id),
+            eq(progress.userId, userId),
             inArray(progress.flashcardId, flashcardIds)
           ),
       });
