@@ -32,14 +32,14 @@ const StudySetCTA = ({ session, id, userId }: StudySetCTAProps) => {
         {session && <StudySetFoldersDialog session={session} />}
         {session?.user.id === userId && (
           <Tooltip>
-            <Link href={`/study-sets/${id}/edit`}>
-              <TooltipTrigger asChild>
-                <Button size="icon" variant="outline">
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="outline" asChild>
+                <Link href={`/study-sets/${id}/edit`}>
                   <Edit size={16} />
                   <span className="sr-only">{t("editKey")}</span>
-                </Button>
-              </TooltipTrigger>
-            </Link>
+                </Link>
+              </Button>
+            </TooltipTrigger>
             <TooltipContent>
               <p>{t("editKey")}</p>
             </TooltipContent>

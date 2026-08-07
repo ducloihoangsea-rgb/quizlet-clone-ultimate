@@ -289,11 +289,11 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                         </p>
                       </div>
     
-                      <Link href={`/study-sets/${set.id}`}>
-                        <Button className="rounded-full bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold px-7 py-5 text-[15px] h-auto mt-4 active:scale-95 transition-all shadow-sm">
+                      <Button asChild className="rounded-full bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold px-7 py-5 text-[15px] h-auto mt-4 active:scale-95 transition-all shadow-sm">
+                        <Link href={`/study-sets/${set.id}`}>
                           {t("continue")}
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </div>
 
                     {/* SVG Illustration side (3D Cards) */}
