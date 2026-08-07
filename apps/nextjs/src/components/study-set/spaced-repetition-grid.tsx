@@ -85,6 +85,8 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
     return map;
   }, [flashcards]);
 
+  const [isVisible, setIsVisible] = useState(true);
+
   if (!session) return null; // Only for logged-in users
   
   const cardsByLevel = (levelIndex: number) => grouped.get(levelIndex) || [];
@@ -92,53 +94,63 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
   return (
     <div className="space-y-5 mb-8 pt-4">
       <div className="flex justify-between items-end">
-          <h2 className="text-xl font-bold text-foreground">Tiến độ ghi nhớ</h2>
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            Tiến độ ghi nhớ
+            <button 
+              onClick={() => setIsVisible(!isVisible)} 
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground px-2 py-1 rounded bg-muted/50 hover:bg-muted transition-colors"
+            >
+              {isVisible ? "Ẩn" : "Hiện"}
+            </button>
+          </h2>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {LEVELS.map((lvl, idx) => {
-          const cards = cardsByLevel(idx);
-          const theme = COLORS[lvl.color as keyof typeof COLORS];
-          
-          let latestDate: Date | null = null;
-          cards.forEach(c => {
-             // @ts-ignore
-             if (c.progress?.nextReviewDate) {
-                 // @ts-ignore
-                 const d = new Date(c.progress.nextReviewDate);
-                 if (!latestDate || d > latestDate) latestDate = d;
-             }
-          });
+      {isVisible && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {LEVELS.map((lvl, idx) => {
+            const cards = cardsByLevel(idx);
+            const theme = COLORS[lvl.color as keyof typeof COLORS];
+            
+            let latestDate: Date | null = null;
+            cards.forEach(c => {
+               // @ts-ignore
+               if (c.progress?.nextReviewDate) {
+                   // @ts-ignore
+                   const d = new Date(c.progress.nextReviewDate);
+                   if (!latestDate || d > latestDate) latestDate = d;
+               }
+            });
 
-          return (
-            <div 
-              key={idx}
-              onClick={() => { if(cards.length > 0) setSelectedLevel(idx) }}
-              className={cn(
-                "p-3 rounded-xl bg-card border border-border flex flex-col gap-1.5 relative overflow-hidden transition-all shadow-sm",
-                cards.length > 0 ? `cursor-pointer hover:-translate-y-1 ${theme.hover} shadow-md` : "opacity-50 grayscale cursor-not-allowed"
-              )}
-            >
-              <div className={cn("absolute top-0 left-0 w-full h-1", theme.bg)}></div>
-              <div className="flex justify-between items-center">
-                  <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded", theme.badgeText, theme.badgeBg)}>
-                      LV {idx} ({lvl.days === 0 && idx === 0 ? "0 ngày" : lvl.days === 0 ? "1 giờ" : `${lvl.days} ngày`})
-                  </span>
-                  <span className="text-sm font-black text-foreground">
-                      {cards.length} <span className="text-[10px] font-medium text-muted-foreground">thẻ</span>
-                  </span>
+            return (
+              <div 
+                key={idx}
+                onClick={() => { if(cards.length > 0) setSelectedLevel(idx) }}
+                className={cn(
+                  "p-3 rounded-xl bg-card border border-border flex flex-col gap-1.5 relative overflow-hidden transition-all shadow-sm",
+                  cards.length > 0 ? `cursor-pointer hover:-translate-y-1 ${theme.hover} shadow-md` : "opacity-50 grayscale cursor-not-allowed"
+                )}
+              >
+                <div className={cn("absolute top-0 left-0 w-full h-1", theme.bg)}></div>
+                <div className="flex justify-between items-center">
+                    <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded", theme.badgeText, theme.badgeBg)}>
+                        LV {idx} ({lvl.days === 0 && idx === 0 ? "0 ngày" : lvl.days === 0 ? "1 giờ" : `${lvl.days} ngày`})
+                    </span>
+                    <span className="text-sm font-black text-foreground">
+                        {cards.length} <span className="text-[10px] font-medium text-muted-foreground">thẻ</span>
+                    </span>
+                </div>
+                <h3 className={cn("text-sm font-bold", theme.text)}>{lvl.title}</h3>
+                <div className="mt-1 pt-1.5 border-t border-border/50 flex justify-between items-center">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Trễ nhất:</span>
+                    <span className={cn("text-xs font-mono font-bold", theme.timeText)}>
+                        {mounted && now ? (latestDate ? formatTimeLeft(latestDate, now) : (idx === 0 ? "Học ngay!" : "--:--:--")) : "--:--:--"}
+                    </span>
+                </div>
               </div>
-              <h3 className={cn("text-sm font-bold", theme.text)}>{lvl.title}</h3>
-              <div className="mt-1 pt-1.5 border-t border-border/50 flex justify-between items-center">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Trễ nhất:</span>
-                  <span className={cn("text-xs font-mono font-bold", theme.timeText)}>
-                      {mounted && now ? (latestDate ? formatTimeLeft(latestDate, now) : (idx === 0 ? "Học ngay!" : "--:--:--")) : "--:--:--"}
-                  </span>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {selectedLevel !== null && now && (
         <LevelFlashcardsModal 
