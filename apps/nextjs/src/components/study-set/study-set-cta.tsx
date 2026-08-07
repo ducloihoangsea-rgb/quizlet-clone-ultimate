@@ -14,6 +14,8 @@ import StudySetFoldersDialog from "./study-set-folders-dialog";
 import StudySetOptionsDropdown from "./study-set-options-dropdown";
 import StudySetShareDialog from "./study-set-share-dialog";
 
+import { useTranslation } from "~/contexts/i18n-context";
+
 interface StudySetCTAProps {
   session: Session | null;
   id: string;
@@ -21,6 +23,7 @@ interface StudySetCTAProps {
 }
 
 const StudySetCTA = ({ session, id, userId }: StudySetCTAProps) => {
+  const { t } = useTranslation();
   return (
     <TooltipProvider delayDuration={0}>
       <div className="flex gap-2">
@@ -31,12 +34,12 @@ const StudySetCTA = ({ session, id, userId }: StudySetCTAProps) => {
               <TooltipTrigger asChild>
                 <Button size="icon" variant="outline">
                   <Edit size={16} />
-                  <span className="sr-only">Edit</span>
+                  <span className="sr-only">{t("editKey")}</span>
                 </Button>
               </TooltipTrigger>
             </Link>
             <TooltipContent>
-              <p>Edit</p>
+              <p>{t("editKey")}</p>
             </TooltipContent>
           </Tooltip>
         )}

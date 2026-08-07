@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { cn } from "@acme/ui";
 import { type SelectFlashcard } from "@acme/db/schema";
+import { useTranslation } from "~/contexts/i18n-context";
 
 export default function LevelFlashcardsModal({
   level,
@@ -17,6 +18,7 @@ export default function LevelFlashcardsModal({
   theme: any;
   now: Date;
 }) {
+  const { t } = useTranslation();
   
   // lock body scroll
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function LevelFlashcardsModal({
 
   const formatTimeLeft = (targetDate: Date) => {
       const diff = targetDate.getTime() - now.getTime();
-      if (diff <= 0) return "Học ngay!";
+      if (diff <= 0) return t("learnNow");
       
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       if (days >= 30) {
@@ -43,9 +45,11 @@ export default function LevelFlashcardsModal({
       const mStr = m.toString().padStart(2, "0");
       const sStr = s.toString().padStart(2, "0");
 
-      if (days > 0) return `${days} ngày ${hStr}:${mStr}:${sStr}`;
+      if (days > 0) return `${days} ${t("day")} ${hStr}:${mStr}:${sStr}`;
       return `${hStr}:${mStr}:${sStr}`;
   };
+
+  const scheduleText = level.days === 0 && level.level === 0 ? `0 ${t("day")}` : level.days === 0 ? "1h" : `${level.days} ${t("day")}`;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -59,7 +63,9 @@ export default function LevelFlashcardsModal({
                     <h2 className={cn("text-xl font-bold flex items-center gap-2", theme.text)}>
                         LEVEL {level.level}: {level.title}
                     </h2>
-                    <p className="text-sm text-muted-foreground mt-1">Gồm {cards.length} thẻ • Lịch ôn tập sau {level.days === 0 && level.level === 0 ? "0 ngày" : level.days === 0 ? "1 giờ" : `${level.days} ngày`}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        {cards.length} {t("cardsLabel")} • {t("scheduleAfter")} {scheduleText}
+                    </p>
                 </div>
                 <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 text-muted-foreground transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -77,9 +83,9 @@ export default function LevelFlashcardsModal({
                                 <span className="w-1/2 text-muted-foreground break-words">{card.definition}</span>
                             </div>
                             <div className="flex flex-col items-end shrink-0">
-                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Tới hạn ôn tập sau:</span>
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("dueForReviewIn")}</span>
                                 <span className={cn("text-sm font-mono font-bold px-2 py-0.5 rounded mt-1", theme.badgeText, theme.badgeBg)}>
-                                    {reviewDate ? formatTimeLeft(reviewDate) : "Học ngay!"}
+                                    {reviewDate ? formatTimeLeft(reviewDate) : t("learnNow")}
                                 </span>
                             </div>
                         </div>
@@ -89,9 +95,10 @@ export default function LevelFlashcardsModal({
             
             {/* Footer */}
             <div className="p-4 border-t border-border bg-card rounded-b-2xl flex justify-end">
-                <button onClick={onClose} className="px-5 py-2.5 bg-muted hover:bg-muted/80 border border-border rounded-lg font-bold transition-all text-sm text-foreground shadow-sm">Đóng lại</button>
+                <button onClick={onClose} className="px-5 py-2.5 bg-muted hover:bg-muted/80 border border-border rounded-lg font-bold transition-all text-sm text-foreground shadow-sm">{t("closeModalBtn")}</button>
             </div>
         </div>
     </div>
   )
 }
+

@@ -21,7 +21,7 @@ import {
 } from "@acme/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@acme/ui/tooltip";
 
-import { api } from "~/trpc/react";
+import { useTranslation } from "~/contexts/i18n-context";
 import DeleteStudySetDialog from "./delete-study-set-dialog";
 import StudySetCombineDialog from "./study-set-combine-dialog";
 import StudySetExportDialog from "./study-set-export-dialog";
@@ -36,6 +36,7 @@ const StudySetOptionsDropdown = ({
   id: string;
   userId?: string;
 }) => {
+  const { t } = useTranslation();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [exportDialogOpen, setExportDialogOpen] = useState<boolean>(false);
   const [combineDialogOpen, setCombineDialogOpen] = useState<boolean>(false);
@@ -65,31 +66,31 @@ const StudySetOptionsDropdown = ({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
                 <Ellipsis size={16} />
-                <span className="sr-only">More</span>
+                <span className="sr-only">{t("more")}</span>
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent>More</TooltipContent>
+          <TooltipContent>{t("more")}</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>More</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("more")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {userId && (
             <DropdownMenuItem onClick={openCombineDialog}>
               <MergeIcon size={16} className="mr-2" />
-              Combine
+              {t("combine")}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={() => handlePrint()}>
             <PrinterIcon size={16} className="mr-2" />
-            Print
+            {t("print")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={openExportDialog}>
-            <DownloadIcon size={16} className="mr-2" /> Export
+            <DownloadIcon size={16} className="mr-2" /> {t("export")}
           </DropdownMenuItem>
           {isOwner && (
             <DropdownMenuItem onClick={openDeleteDialog}>
-              <Trash2Icon size={16} className="mr-2" /> Delete
+              <Trash2Icon size={16} className="mr-2" /> {t("deleteBtn")}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

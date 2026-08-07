@@ -17,12 +17,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@acme/ui/tooltip";
 
 import { getAppUrl } from "~/utils/get-url";
 
+import { useTranslation } from "~/contexts/i18n-context";
+
 const StudySetShareDialog = ({ id }: { id: string }) => {
+  const { t } = useTranslation();
   const url = `${getAppUrl()}/study-sets/${id}`;
 
   const onCopy = async () => {
     await navigator.clipboard.writeText(url);
-    toast.success("Copied");
+    toast.success(t("save"));
   };
 
   return (
@@ -35,13 +38,13 @@ const StudySetShareDialog = ({ id }: { id: string }) => {
             </Button>
           </DialogTrigger>
         </TooltipTrigger>
-        <TooltipContent>Share</TooltipContent>
+        <TooltipContent>{t("shareBtn")}</TooltipContent>
       </Tooltip>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share link</DialogTitle>
+          <DialogTitle>{t("shareLink")}</DialogTitle>
           <DialogDescription>
-            Anyone who has this link will be able to view this.
+            {t("publicDisplayName")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-2">

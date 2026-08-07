@@ -6,16 +6,17 @@ import { type Session } from "@acme/auth";
 import { api } from "~/trpc/react";
 import { cn } from "@acme/ui";
 import LevelFlashcardsModal from "./level-flashcards-modal";
+import { useTranslation } from "~/contexts/i18n-context";
 
 const LEVELS = [
-  { level: 0, title: "Chưa thuộc", days: 0, color: "slate" },
-  { level: 1, title: "Đang học", days: 0, color: "red" },
-  { level: 2, title: "Nhớ ngắn hạn", days: 1, color: "orange" },
-  { level: 3, title: "Bắt đầu thuộc", days: 3, color: "yellow" },
-  { level: 4, title: "Khá thuộc", days: 7, color: "lime" },
-  { level: 5, title: "Thuộc tốt", days: 21, color: "green" },
-  { level: 6, title: "Thuộc sâu", days: 56, color: "emerald" },
-  { level: 7, title: "Thành thạo", days: 150, color: "blue" },
+  { level: 0, titleKey: "level0Title" as const, days: 0, color: "slate" },
+  { level: 1, titleKey: "level1Title" as const, days: 0, color: "red" },
+  { level: 2, titleKey: "level2Title" as const, days: 1, color: "orange" },
+  { level: 3, titleKey: "level3Title" as const, days: 3, color: "yellow" },
+  { level: 4, titleKey: "level4Title" as const, days: 7, color: "lime" },
+  { level: 5, titleKey: "level5Title" as const, days: 21, color: "green" },
+  { level: 6, titleKey: "level6Title" as const, days: 56, color: "emerald" },
+  { level: 7, titleKey: "level7Title" as const, days: 150, color: "blue" },
 ];
 
 const COLORS = {
@@ -29,9 +30,9 @@ const COLORS = {
   blue: { bg: "bg-blue-500", border: "border-blue-500", hover: "hover:border-blue-500", text: "text-blue-700 dark:text-blue-200", badgeText: "text-blue-600 dark:text-blue-400", badgeBg: "bg-blue-500/10", timeText: "text-blue-600 dark:text-blue-300" },
 };
 
-function formatTimeLeft(targetDate: Date, now: Date) {
+function formatTimeLeft(targetDate: Date, now: Date, learnNowText: string) {
   const diff = targetDate.getTime() - now.getTime();
-  if (diff <= 0) return "Học ngay!";
+  if (diff <= 0) return learnNowText;
   
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   if (days >= 30) {
@@ -55,6 +56,7 @@ function formatTimeLeft(targetDate: Date, now: Date) {
 }
 
 export default function SpacedRepetitionGrid({ session }: { session: Session | null }) {
+  const { t } = useTranslation();
   const { id }: { id: string } = useParams();
   const [{ flashcards }] = api.studySet.byId.useSuspenseQuery({ id });
   
@@ -95,12 +97,12 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
     <div className="space-y-5 mb-8 pt-4">
       <div className="flex justify-between items-end">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            Tiến độ ghi nhớ
+            {t("memoryProgress")}
             <button 
               onClick={() => setIsVisible(!isVisible)} 
               className="text-xs font-semibold text-muted-foreground hover:text-foreground px-2 py-1 rounded bg-muted/50 hover:bg-muted transition-colors"
             >
-              {isVisible ? "Ẩn" : "Hiện"}
+              {isVisible ? t("hideToggle") : t("showToggle")}
             </button>
           </h2>
       </div>
@@ -121,6 +123,8 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
                }
             });
 
+            const levelTitle = t(lvl.titleKey);
+
             return (
               <div 
                 key={idx}
@@ -133,17 +137,17 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
                 <div className={cn("absolute top-0 left-0 w-full h-1", theme.bg)}></div>
                 <div className="flex justify-between items-center">
                     <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded", theme.badgeText, theme.badgeBg)}>
-                        LV {idx} ({lvl.days === 0 && idx === 0 ? "0 ngày" : lvl.days === 0 ? "1 giờ" : `${lvl.days} ngày`})
+                        LV {idx} ({lvl.days === 0 && idx === 0 ? `0 ${t("day")}` : lvl.days === 0 ? "1h" : `${lvl.days} ${t("day")}`})
                     </span>
                     <span className="text-sm font-black text-foreground">
-                        {cards.length} <span className="text-[10px] font-medium text-muted-foreground">thẻ</span>
+                        {cards.length} <span className="text-[10px] font-medium text-muted-foreground">{t("cardsLabel")}</span>
                     </span>
                 </div>
-                <h3 className={cn("text-sm font-bold", theme.text)}>{lvl.title}</h3>
+                <h3 className={cn("text-sm font-bold", theme.text)}>{levelTitle}</h3>
                 <div className="mt-1 pt-1.5 border-t border-border/50 flex justify-between items-center">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Trễ nhất:</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("latestDue")}</span>
                     <span className={cn("text-xs font-mono font-bold", theme.timeText)}>
-                        {mounted && now ? (latestDate ? formatTimeLeft(latestDate, now) : (idx === 0 ? "Học ngay!" : "--:--:--")) : "--:--:--"}
+                        {mounted && now ? (latestDate ? formatTimeLeft(latestDate, now, t("learnNow")) : (idx === 0 ? t("learnNow") : "--:--:--")) : "--:--:--"}
                     </span>
                 </div>
               </div>
@@ -154,7 +158,11 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
 
       {selectedLevel !== null && now && (
         <LevelFlashcardsModal 
-            level={LEVELS[selectedLevel]!}
+            level={{
+              level: LEVELS[selectedLevel]!.level,
+              title: t(LEVELS[selectedLevel]!.titleKey),
+              days: LEVELS[selectedLevel]!.days
+            }}
             cards={cardsByLevel(selectedLevel)}
             onClose={() => setSelectedLevel(null)}
             theme={COLORS[LEVELS[selectedLevel]!.color as keyof typeof COLORS]}
@@ -164,3 +172,4 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
     </div>
   );
 }
+

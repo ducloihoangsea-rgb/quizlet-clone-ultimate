@@ -7,7 +7,10 @@ import { Card, CardContent } from "@acme/ui/card";
 import { Switch } from "@acme/ui/switch";
 import { useTheme } from "@acme/ui/theme";
 
+import { useTranslation } from "~/contexts/i18n-context";
+
 const DarkMode = () => {
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState<boolean>(false);
   const { theme, setTheme } = useTheme();
 
@@ -22,7 +25,7 @@ const DarkMode = () => {
     >
       <div className="flex items-center gap-2 lg:basis-48 lg:flex-col lg:justify-center">
         <Moon size={64} />
-        <span className="text-xl font-semibold">Dark Mode</span>
+        <span className="text-xl font-semibold">{t("darkMode")}</span>
       </div>
       <Card className="flex-1">
         <CardContent className="p-6">

@@ -285,7 +285,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
                         <p className="text-[13px] text-muted-foreground font-semibold tracking-wide flex items-center gap-2">
                           <span className="text-[#10b981]">{percentage}%</span> 
                           <span>&bull;</span> 
-                          <span>{learned}/{total} cards sorted</span>
+                          <span>{t("cardsSortedCount").replace("{learned}", String(learned)).replace("{total}", String(total))}</span>
                         </p>
                       </div>
     

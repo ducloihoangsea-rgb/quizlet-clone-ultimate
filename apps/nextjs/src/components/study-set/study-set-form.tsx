@@ -29,6 +29,7 @@ import { StudySetSchema } from "@acme/validators";
 
 import { api } from "~/trpc/react";
 import StudySetImportDialog from "./study-set-import-dialog";
+import { useTranslation } from "~/contexts/i18n-context";
 
 const initialFlashcards = Array.from({ length: 4 }, (_, index) => ({
   term: "",
@@ -41,6 +42,7 @@ interface StudySetFormProps {
 }
 
 const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
+  const { t } = useTranslation();
   const form = useForm({
     schema: StudySetSchema,
     defaultValues: {
@@ -61,7 +63,7 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
   const create = api.studySet.create.useMutation({
     onSuccess() {
       form.reset({});
-      toast.success(`${defaultValues ? "Saved" : "Created new"} study set`);
+      toast.success(defaultValues ? t("saveSetBtn") : t("createSetBtn"));
       void utils.studySet.invalidate();
 
       const route = defaultValues
@@ -347,7 +349,7 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
             {create.isPending ? (
               <LoaderCircle size={16} className="animate-spin" />
             ) : (
-              <>{defaultValues ? "Save" : "Create"} study set</>
+              <>{defaultValues ? t("saveSetBtn") : t("createSetBtn")}</>
             )}
           </Button>
 
@@ -366,8 +368,8 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
                     <span className="text-lg">✨</span>
                     <span>
                       {defaultValues
-                        ? "Lưu học phần (Save Set)"
-                        : "Hoàn tất & Tạo học phần (Create Set)"}
+                        ? t("saveSetBtn")
+                        : t("createSetBtn")}
                     </span>
                   </>
                 )}

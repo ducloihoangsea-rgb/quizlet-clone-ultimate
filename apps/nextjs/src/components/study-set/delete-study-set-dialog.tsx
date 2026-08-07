@@ -16,6 +16,7 @@ import {
 import { toast } from "@acme/ui/toast";
 
 import { api } from "~/trpc/react";
+import { useTranslation } from "~/contexts/i18n-context";
 
 interface DeleteStudySetDialogProps {
   id: string;
@@ -28,12 +29,13 @@ const DeleteStudySetDialog = ({
   open,
   onOpenChange,
 }: DeleteStudySetDialogProps) => {
+  const { t } = useTranslation();
   const utils = api.useUtils();
   const router = useRouter();
   const { mutate, isPending } = api.studySet.delete.useMutation({
     onSuccess() {
       void utils.studySet.invalidate();
-      toast.success("Successfully deleted study set");
+      toast.success(t("deleteBtn"));
       router.push("/latest");
     },
     onError() {
@@ -49,15 +51,14 @@ const DeleteStudySetDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
+          <DialogTitle>{t("deleteBtn")} {t("studySet")}?</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            study set and remove your data from our servers.
+            {t("publicDisplayName")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild disabled={isPending}>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("cancel")}</Button>
           </DialogClose>
           <Button
             disabled={isPending}

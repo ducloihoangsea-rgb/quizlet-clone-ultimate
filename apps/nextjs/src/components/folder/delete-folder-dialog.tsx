@@ -18,6 +18,7 @@ import {
 import { toast } from "@acme/ui/toast";
 
 import { api } from "~/trpc/react";
+import { useTranslation } from "~/contexts/i18n-context";
 
 interface DeleteFolderDialogProps {
   id: string;
@@ -34,10 +35,11 @@ const DeleteFolderDialog = ({
   onOpenChange,
   children 
 }: DeleteFolderDialogProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { mutate, isPending } = api.folder.delete.useMutation({
     onSuccess() {
-      toast.success("Successfully deleted folder");
+      toast.success(t("deleteBtn"));
       if (onOpenChange) {
         onOpenChange(false);
       }
@@ -57,15 +59,14 @@ const DeleteFolderDialog = ({
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
+          <DialogTitle>{t("deleteBtn")}?</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            folder and remove your data from our servers.
+            {t("publicDisplayName")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild disabled={isPending}>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("cancel")}</Button>
           </DialogClose>
           <Button
             disabled={isPending}

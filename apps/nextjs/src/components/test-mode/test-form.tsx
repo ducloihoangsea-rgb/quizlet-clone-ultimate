@@ -4,7 +4,7 @@ import type { RouterOutputs } from "@acme/api";
 import { Button } from "@acme/ui/button";
 import { Form, FormField, useFieldArray, useForm } from "@acme/ui/form";
 
-import type { Answers } from "./test-mode";
+import { useTranslation } from "~/contexts/i18n-context";
 import MultipleChoiceCard from "../shared/multiple-choice-card";
 import TrueFalseCard from "../shared/true-false-card";
 import WrittenCard from "../shared/written-card";
@@ -38,6 +38,7 @@ interface TestFormProps {
 }
 
 const TestForm = ({ test, onSubmit }: TestFormProps) => {
+  const { t } = useTranslation();
   const initalData = {
     multipleChoice: test.multipleChoice.map((i) => ({ ...i, userAnswer: "" })),
     trueOrFalse: test.trueOrFalse.map((i) => ({ ...i, userAnswer: "" })),
@@ -106,7 +107,7 @@ const TestForm = ({ test, onSubmit }: TestFormProps) => {
             )}
           />
         ))}
-        <Button type="submit">Submit</Button>
+        <Button type="submit">{t("submitBtn")}</Button>
       </form>
     </Form>
   );
