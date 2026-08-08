@@ -114,12 +114,16 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
             const theme = COLORS[lvl.color as keyof typeof COLORS];
             
             let latestDate: Date | null = null;
+            let dueCount = 0;
             cards.forEach(c => {
                // @ts-ignore
                if (c.progress?.nextReviewDate) {
                    // @ts-ignore
                    const d = new Date(c.progress.nextReviewDate);
                    if (!latestDate || d > latestDate) latestDate = d;
+                   if (mounted && now && d <= now) dueCount++;
+               } else if (idx === 0) {
+                   dueCount++;
                }
             });
 
@@ -143,7 +147,14 @@ export default function SpacedRepetitionGrid({ session }: { session: Session | n
                         {cards.length} <span className="text-[10px] font-medium text-muted-foreground">{t("cardsLabel")}</span>
                     </span>
                 </div>
-                <h3 className={cn("text-sm font-bold", theme.text)}>{levelTitle}</h3>
+                <div className="flex justify-between items-center mt-1">
+                    <h3 className={cn("text-sm font-bold", theme.text)}>{levelTitle}</h3>
+                    {dueCount > 0 && mounted && now && (
+                        <span className="text-[9px] px-1.5 py-0.5 bg-red-500 text-white rounded font-black shadow-sm" title="Số thẻ cần ôn tập ngay">
+                            {dueCount} {t("learnNow").toUpperCase()}
+                        </span>
+                    )}
+                </div>
                 <div className="mt-1 pt-1.5 border-t border-border/50 flex justify-between items-center">
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("latestDue")}</span>
                     <span className={cn("text-xs font-mono font-bold", theme.timeText)}>
