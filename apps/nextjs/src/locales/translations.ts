@@ -510,8 +510,11 @@ export const translations = {
     editKey: "编辑",
     darkMode: "暗黑模式",
     deleteAccount: "删除账号",
-    combine: "Combine",
-    print: "Print",
-    export: "Export"
+    combine: "合并",
+    print: "打印",
+    export: "导出",
+    all: "全部",
+    starredTerms: "星标",
+    noStarredTerms: "此学习集中暂无星标词语。"
   }
 };
