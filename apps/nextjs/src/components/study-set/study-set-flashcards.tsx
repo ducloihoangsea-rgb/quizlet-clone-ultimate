@@ -8,11 +8,12 @@ import { cn } from "@acme/ui";
 
 import { api } from "~/trpc/react";
 import FlashcardCard from "../shared/flashcard-card";
+import { useTranslation } from "~/contexts/i18n-context";
 
 const StudySetFlashcards = ({ session }: { session: Session | null }) => {
   const { id }: { id: string } = useParams();
   const [{ flashcards, userId }] = api.studySet.byId.useSuspenseQuery({ id });
-  
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<"all" | "starred">("all");
 
   const starredCount = flashcards.filter((f) => f.starred).length;
@@ -24,7 +25,7 @@ const StudySetFlashcards = ({ session }: { session: Session | null }) => {
     <div className="mb-8 select-none font-sans">
       <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-3">
         <span className="text-xl font-black tracking-tight text-foreground">
-          Thuật ngữ trong học phần này ({flashcards.length})
+          {t("termsInSet")} ({flashcards.length})
         </span>
         
         <div className="flex items-center gap-4 text-sm font-bold">
@@ -37,7 +38,7 @@ const StudySetFlashcards = ({ session }: { session: Session | null }) => {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             )}
           >
-            Tất cả
+            {t("all")}
           </button>
           
           <button
@@ -49,14 +50,14 @@ const StudySetFlashcards = ({ session }: { session: Session | null }) => {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             )}
           >
-            Gắn dấu sao ({starredCount})
+            {t("starredTerms")} ({starredCount})
           </button>
         </div>
       </div>
 
       {filteredFlashcards.length === 0 && filter === "starred" ? (
         <div className="py-12 text-center border-2 border-dashed rounded-2xl bg-muted/20 text-muted-foreground font-bold font-sans">
-          Chưa có thuật ngữ nào được gắn dấu sao trong học phần này.
+          {t("noStarredTerms")}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
