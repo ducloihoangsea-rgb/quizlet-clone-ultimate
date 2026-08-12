@@ -367,8 +367,6 @@ export const studySetRouter = {
 
       const cards = generateMultipleChoiceCards(dueCards, flashcards);
 
-      const starredFlashcards = await getStarredFlashcards(ctx, input.id);
-
       return cards.map((card) => ({
         ...card,
         starred: starredFlashcards.some(({ id }) => id === card.id),
