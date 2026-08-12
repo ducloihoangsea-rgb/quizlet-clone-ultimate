@@ -104,9 +104,8 @@ function buildHtmlContent(title: string, cards: { term: string; definition: stri
 </head>
 <body>
   <h1>${escapeHtml(title)}</h1>
-  ${cards.map((card, idx) => `
+  ${cards.map((card) => `
     <div class="card">
-      <div class="card-num">Câu ${idx + 1}:</div>
       <div class="card-term">${escapeHtml(card.term)}</div>
       <div>
         <span class="card-answer-label">Đáp án: </span>
@@ -220,9 +219,8 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
 </head>
 <body>
   <h1>${escapeHtml(title)}</h1>
-  ${cards.map((card, idx) => `
+  ${cards.map((card) => `
     <div class="card">
-      <p class="card-num">Câu ${idx + 1}:</p>
       <p class="card-term">${escapeHtml(card.term)}</p>
       <p>
         <span class="card-answer-label">Đáp án: </span>
