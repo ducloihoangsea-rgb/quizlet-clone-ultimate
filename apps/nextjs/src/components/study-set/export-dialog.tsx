@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Download, FileText, Star } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Download, FileText, Star, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -87,21 +87,24 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
     return flashcards;
   };
 
+  // ─── EXPORT WORD ───
   const exportWord = async () => {
     setIsExporting(true);
     try {
       const cards = getFilteredCards();
-      const { Document, Packer, Paragraph, TextRun, HeadingLevel, BorderStyle } = await import("docx");
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = await import("docx");
       const { saveAs } = await import("file-saver");
 
-      const children: any[] = [];
+      const children: (InstanceType<typeof Paragraph>)[] = [];
 
       // Title
       children.push(
         new Paragraph({
-          text: title,
+          children: [
+            new TextRun({ text: title, bold: true, size: 32, font: "Times New Roman" }),
+          ],
           heading: HeadingLevel.HEADING_1,
-          spacing: { after: 300 },
+          spacing: { after: 200 },
         })
       );
 
@@ -110,9 +113,9 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
         children.push(
           new Paragraph({
             children: [
-              new TextRun({ text: `Câu ${idx + 1}:`, bold: true, size: 24 }),
+              new TextRun({ text: `Câu ${idx + 1}:`, bold: true, size: 24, font: "Times New Roman" }),
             ],
-            spacing: { before: 300, after: 100 },
+            spacing: { before: 240, after: 80 },
           })
         );
 
@@ -121,22 +124,35 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
         termLines.forEach((line) => {
           children.push(
             new Paragraph({
-              children: [new TextRun({ text: line, size: 24 })],
+              children: [new TextRun({ text: line, size: 24, font: "Times New Roman" })],
               spacing: { after: 40 },
             })
           );
         });
 
         // Definition (answer)
+        const defLines = card.definition.split("\n");
         children.push(
           new Paragraph({
             children: [
-              new TextRun({ text: "Đáp án: ", bold: true, size: 24 }),
-              new TextRun({ text: card.definition, size: 24, color: "2563EB" }),
+              new TextRun({ text: "Đáp án: ", bold: true, size: 24, font: "Times New Roman" }),
+              new TextRun({ text: defLines[0] || "", size: 24, font: "Times New Roman", color: "2563EB", bold: true }),
             ],
-            spacing: { before: 100, after: 100 },
+            spacing: { before: 80, after: 80 },
           })
         );
+
+        // Extra definition lines if any
+        for (let i = 1; i < defLines.length; i++) {
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: defLines[i] || "", size: 24, font: "Times New Roman", color: "2563EB" }),
+              ],
+              spacing: { after: 40 },
+            })
+          );
+        }
 
         // Separator
         children.push(
@@ -144,134 +160,118 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
             border: {
               bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
             },
-            spacing: { after: 200 },
+            spacing: { after: 160 },
           })
         );
       });
 
       const doc = new Document({
-        sections: [{ children }],
+        sections: [{
+          properties: {
+            page: {
+              margin: { top: 720, right: 720, bottom: 720, left: 720 },
+            },
+          },
+          children,
+        }],
       });
 
       const blob = await Packer.toBlob(doc);
-      const safeName = title.replace(/[^a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u4E00-\u9FFF\s]/g, "").trim() || "export";
+      const safeName = title.replace(/[^\w\u00C0-\u024F\u1E00-\u1EFF\u4E00-\u9FFF\s]/g, "").trim() || "export";
       saveAs(blob, `${safeName}_export.docx`);
     } catch (e) {
       console.error("Export Word error:", e);
+      alert("Lỗi khi xuất file Word. Vui lòng thử lại.");
     } finally {
       setIsExporting(false);
     }
   };
 
-  const exportPDF = async () => {
-    setIsExporting(true);
-    try {
-      const cards = getFilteredCards();
-      const { jsPDF } = await import("jspdf");
-
-      // Load fonts
-      const [timesRes, kaitiRes] = await Promise.all([
-        fetch("/fonts/times-new-roman.ttf"),
-        fetch("/fonts/kaiti.ttf"),
-      ]);
-
-      const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-      if (timesRes.ok) {
-        const timesBuffer = await timesRes.arrayBuffer();
-        const timesBase64 = btoa(
-          new Uint8Array(timesBuffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
-        );
-        doc.addFileToVFS("TimesNewRoman.ttf", timesBase64);
-        doc.addFont("TimesNewRoman.ttf", "TimesNewRoman", "normal");
-      }
-
-      if (kaitiRes.ok) {
-        const kaitiBuffer = await kaitiRes.arrayBuffer();
-        const kaitiBase64 = btoa(
-          new Uint8Array(kaitiBuffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
-        );
-        doc.addFileToVFS("KaiTi.ttf", kaitiBase64);
-        doc.addFont("KaiTi.ttf", "KaiTi", "normal");
-      }
-
-      // Detect if text contains CJK characters
-      const hasCJK = (text: string) => /[\u4E00-\u9FFF\u3400-\u4DBF]/.test(text);
-
-      const setFont = (text: string) => {
-        if (hasCJK(text) && kaitiRes.ok) {
-          doc.setFont("KaiTi");
-        } else if (timesRes.ok) {
-          doc.setFont("TimesNewRoman");
-        }
-      };
-
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 20;
-      const maxWidth = pageWidth - margin * 2;
-      let y = margin;
-
-      // Title
-      setFont(title);
-      doc.setFontSize(18);
-      doc.setFont(doc.getFont().fontName, "bold");
-      const titleLines = doc.splitTextToSize(title, maxWidth);
-      doc.text(titleLines, margin, y);
-      y += titleLines.length * 8 + 6;
-
-      doc.setFontSize(12);
-
-      cards.forEach((card, idx) => {
-        // Check page break
-        const termLines = doc.splitTextToSize(card.term, maxWidth);
-        const defLines = doc.splitTextToSize(`Đáp án: ${card.definition}`, maxWidth);
-        const blockHeight = (termLines.length + defLines.length + 2) * 6 + 14;
-
-        if (y + blockHeight > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
-
-        // Question number
-        setFont(`Câu ${idx + 1}:`);
-        doc.setFont(doc.getFont().fontName, "bold");
-        doc.text(`Câu ${idx + 1}:`, margin, y);
-        y += 6;
-
-        // Term
-        setFont(card.term);
-        doc.setFont(doc.getFont().fontName, "normal");
-        doc.text(termLines, margin, y);
-        y += termLines.length * 6 + 4;
-
-        // Definition
-        const answerLabel = "Đáp án: ";
-        setFont(answerLabel + card.definition);
-        doc.setFont(doc.getFont().fontName, "bold");
-        doc.setTextColor(37, 99, 235); // blue
-        doc.text(answerLabel, margin, y);
-        const labelWidth = doc.getTextWidth(answerLabel);
-        doc.setFont(doc.getFont().fontName, "normal");
-        doc.text(defLines, margin, y);
-        y += defLines.length * 6 + 4;
-
-        // Reset color
-        doc.setTextColor(0, 0, 0);
-
-        // Separator line
-        doc.setDrawColor(200, 200, 200);
-        doc.line(margin, y, pageWidth - margin, y);
-        y += 8;
-      });
-
-      const safeName = title.replace(/[^a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u4E00-\u9FFF\s]/g, "").trim() || "export";
-      doc.save(`${safeName}_export.pdf`);
-    } catch (e) {
-      console.error("Export PDF error:", e);
-    } finally {
-      setIsExporting(false);
+  // ─── EXPORT PDF (via browser print) ───
+  const exportPDF = () => {
+    const cards = getFilteredCards();
+    
+    // Build HTML content
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${title}</title>
+  <style>
+    @page { margin: 15mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Times New Roman', 'Noto Serif', serif;
+      font-size: 13pt;
+      line-height: 1.5;
+      color: #1a1a1a;
     }
+    h1 {
+      font-size: 20pt;
+      font-weight: bold;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 8px;
+    }
+    .card {
+      page-break-inside: avoid;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .card-num {
+      font-weight: bold;
+      font-size: 13pt;
+      margin-bottom: 4px;
+    }
+    .card-term {
+      white-space: pre-wrap;
+      margin-bottom: 6px;
+    }
+    .card-answer {
+      color: #2563EB;
+      font-weight: bold;
+    }
+    .card-answer-label {
+      color: #1a1a1a;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(title)}</h1>
+  ${cards.map((card, idx) => `
+    <div class="card">
+      <div class="card-num">Câu ${idx + 1}:</div>
+      <div class="card-term">${escapeHtml(card.term)}</div>
+      <div>
+        <span class="card-answer-label">Đáp án: </span>
+        <span class="card-answer">${escapeHtml(card.definition)}</span>
+      </div>
+    </div>
+  `).join("")}
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Trình duyệt đã chặn popup. Vui lòng cho phép popup và thử lại.");
+      return;
+    }
+    printWindow.document.write(html);
+    printWindow.document.close();
+    
+    // Wait for content to render then trigger print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    };
+    // Fallback if onload doesn't fire
+    setTimeout(() => {
+      printWindow.print();
+    }, 1000);
   };
 
   const filteredCount = filterMode === "all"
@@ -365,16 +365,25 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
           </Button>
           <Button
             onClick={exportPDF}
-            disabled={isExporting || filteredCount === 0}
+            disabled={filteredCount === 0}
             className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl h-12"
           >
-            <Download size={18} className="mr-2" />
-            PDF
+            <Printer size={18} className="mr-2" />
+            PDF (In)
           </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\n/g, "<br>");
+}
 
 export default ExportDialog;
