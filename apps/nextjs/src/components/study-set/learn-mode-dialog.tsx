@@ -18,9 +18,10 @@ interface LearnModeDialogProps {
   onOpenChange: (open: boolean) => void;
   studySetId: string;
   onGoalSelected?: (goal: string) => void;
+  starredOnly?: boolean;
 }
 
-const LearnModeDialog = ({ open, onOpenChange, studySetId, onGoalSelected }: LearnModeDialogProps) => {
+const LearnModeDialog = ({ open, onOpenChange, studySetId, onGoalSelected, starredOnly }: LearnModeDialogProps) => {
   const router = useRouter();
   const [selectedGoal, setSelectedGoal] = useState<"cramming" | "spaced_repetition">("cramming");
   const { data: studySet } = api.studySet.byId.useQuery({ id: studySetId }, { enabled: open });
@@ -31,7 +32,7 @@ const LearnModeDialog = ({ open, onOpenChange, studySetId, onGoalSelected }: Lea
     if (onGoalSelected) {
       onGoalSelected(selectedGoal);
     } else {
-      router.push(`/study-sets/${studySetId}/learn?goal=${selectedGoal}`);
+      router.push(`/study-sets/${studySetId}/learn?goal=${selectedGoal}${starredOnly ? "&starredOnly=true" : ""}`);
     }
   };
 

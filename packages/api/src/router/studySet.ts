@@ -311,11 +311,17 @@ export const studySetRouter = {
       id: z.string(),
       goal: z.enum(["cramming", "spaced_repetition"]).optional(),
       level: z.number().optional(),
+      starredOnly: z.boolean().optional(),
     }))
     .query(async ({ input, ctx }) => {
       const flashcards = await getStudySetFlashcardsQuery(ctx.db, input.id);
       
       let dueCards = flashcards;
+      
+      const starredFlashcards = await getStarredFlashcards(ctx, input.id);
+      if (input.starredOnly) {
+         dueCards = flashcards.filter(card => starredFlashcards.some(sc => sc.id === card.id));
+      }
       
       if (ctx.session) {
         const userId = ctx.session.user.id;
@@ -327,7 +333,8 @@ export const studySetRouter = {
         const progressMap = new Map(progressList.filter(p => p.userId === userId).map(p => [p.flashcardId, p]));
         
         const now = new Date();
-        dueCards = flashcards.filter(card => {
+        dueCards = dueCards.filter(card => {
+          if (input.starredOnly) return true; // Bỏ qua bộ lọc ngày tới hạn nếu chỉ học thẻ gắn sao (bắt đầu lại từ đầu)
           if (input.goal === "cramming") return true;
           
           const p = progressMap.get(card.id);

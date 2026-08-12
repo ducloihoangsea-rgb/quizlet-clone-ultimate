@@ -25,12 +25,13 @@ export default async function Learn({
   searchParams,
 }: {
   params: { id: string };
-  searchParams?: { goal?: "cramming" | "spaced_repetition", level?: string };
+  searchParams?: { goal?: "cramming" | "spaced_repetition", level?: string, starredOnly?: string };
 }) {
   const goal = searchParams?.goal;
   const level = searchParams?.level !== undefined ? parseInt(searchParams.level) : undefined;
+  const starredOnly = searchParams?.starredOnly === "true";
   
-  await api.studySet.learnCards.prefetch({ id, goal, level });
+  await api.studySet.learnCards.prefetch({ id, goal, level, starredOnly });
   await api.studySet.byId.prefetch({ id });
   const session = await auth();
 
@@ -38,7 +39,7 @@ export default async function Learn({
     <HydrateClient>
       <div className="m-auto max-w-3xl px-4">
         <StudyModeHeader currentMode="learn" studySetId={id} />
-        <LearnMode session={session} goal={goal} level={level} />
+        <LearnMode session={session} goal={goal} level={level} starredOnly={starredOnly} />
       </div>
     </HydrateClient>
   );

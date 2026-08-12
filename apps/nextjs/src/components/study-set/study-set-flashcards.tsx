@@ -9,12 +9,15 @@ import { cn } from "@acme/ui";
 import { api } from "~/trpc/react";
 import FlashcardCard from "../shared/flashcard-card";
 import { useTranslation } from "~/contexts/i18n-context";
+import { useFlashcardsModeContext } from "~/contexts/flashcards-mode-context";
 
 const StudySetFlashcards = ({ session }: { session: Session | null }) => {
   const { id }: { id: string } = useParams();
-  const [{ flashcards, userId }] = api.studySet.byId.useSuspenseQuery({ id });
+  const [{ flashcards }] = api.studySet.byId.useSuspenseQuery({ id });
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<"all" | "starred">("all");
+  
+  const { starredOnly, toggleStarredOnly } = useFlashcardsModeContext();
+  const filter = starredOnly ? "starred" : "all";
 
   const starredCount = flashcards.filter((f) => f.starred).length;
   const filteredFlashcards = filter === "starred" 
@@ -30,7 +33,7 @@ const StudySetFlashcards = ({ session }: { session: Session | null }) => {
         
         <div className="flex items-center gap-4 text-sm font-bold">
           <button
-            onClick={() => setFilter("all")}
+            onClick={() => { if (starredOnly) toggleStarredOnly(); }}
             className={cn(
               "pb-1 transition-all border-b-2 outline-none",
               filter === "all"
@@ -42,7 +45,7 @@ const StudySetFlashcards = ({ session }: { session: Session | null }) => {
           </button>
           
           <button
-            onClick={() => setFilter("starred")}
+            onClick={() => { if (!starredOnly) toggleStarredOnly(); }}
             className={cn(
               "pb-1 transition-all border-b-2 flex items-center gap-1 outline-none",
               filter === "starred"

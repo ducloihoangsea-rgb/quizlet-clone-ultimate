@@ -11,17 +11,21 @@ import LearnModeDialog from "./learn-mode-dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { useFlashcardsModeContext } from "~/contexts/flashcards-mode-context";
+
 const StudyModes = ({ studySetId, session }: { studySetId: string, session: Session | null }) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { onOpenChange } = useSignInDialogContext();
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
+  const { starredOnly } = useFlashcardsModeContext();
+  const qs = starredOnly ? "?starredOnly=true" : "";
   
   const modes = [
-    { id: "flashcards", Icon: Copy, text: t("flashcards"), href: `${studySetId}/flashcards`, requiresAuth: false },
-    { id: "learn", Icon: GraduationCap, text: t("learn"), href: `${studySetId}/learn`, requiresAuth: true },
-    { id: "test", Icon: FilePen, text: t("test"), href: `${studySetId}/test`, requiresAuth: true },
-    { id: "match", Icon: Puzzle, text: t("match"), href: `${studySetId}/match`, requiresAuth: true },
+    { id: "flashcards", Icon: Copy, text: t("flashcards"), href: `${studySetId}/flashcards${qs}`, requiresAuth: false },
+    { id: "learn", Icon: GraduationCap, text: t("learn"), href: `${studySetId}/learn${qs}`, requiresAuth: true },
+    { id: "test", Icon: FilePen, text: t("test"), href: `${studySetId}/test${qs}`, requiresAuth: true },
+    { id: "match", Icon: Puzzle, text: t("match"), href: `${studySetId}/match${qs}`, requiresAuth: true },
   ];
 
   const handleModeClick = (e: React.MouseEvent<HTMLAnchorElement>, requiresAuth: boolean, id: string) => {
@@ -34,7 +38,7 @@ const StudyModes = ({ studySetId, session }: { studySetId: string, session: Sess
       e.preventDefault();
       const savedGoal = localStorage.getItem(`quizlet_learn_goal_${studySetId}`);
       if (savedGoal) {
-        router.push(`/study-sets/${studySetId}/learn?goal=${savedGoal}`);
+        router.push(`/study-sets/${studySetId}/learn?goal=${savedGoal}${starredOnly ? "&starredOnly=true" : ""}`);
       } else {
         setIsLearnModalOpen(true);
       }
@@ -59,7 +63,8 @@ const StudyModes = ({ studySetId, session }: { studySetId: string, session: Sess
       <LearnModeDialog 
         open={isLearnModalOpen} 
         onOpenChange={setIsLearnModalOpen} 
-        studySetId={studySetId} 
+        studySetId={studySetId}
+        starredOnly={starredOnly}
       />
     </div>
   );
