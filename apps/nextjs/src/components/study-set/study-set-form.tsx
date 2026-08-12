@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Reorder } from "framer-motion";
-import { LoaderCircle, PlusIcon, Trash2Icon } from "lucide-react";
+import { Download, LoaderCircle, PlusIcon, Trash2Icon, Upload } from "lucide-react";
 
 import type { RouterOutputs } from "@acme/api";
 import type { StudySetValues } from "@acme/validators";
@@ -29,6 +29,7 @@ import { StudySetSchema } from "@acme/validators";
 
 import { api } from "~/trpc/react";
 import StudySetImportDialog from "./study-set-import-dialog";
+import ExportDialog from "./export-dialog";
 import { useTranslation } from "~/contexts/i18n-context";
 
 const initialFlashcards = Array.from({ length: 4 }, (_, index) => ({
@@ -79,6 +80,7 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
   const [isInitialRender, setIsInitialRender] = useState(true);
   const [active, setActive] = useState(0);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [showFloatingBtn, setShowFloatingBtn] = useState(false);
 
   useEffect(() => {
@@ -228,14 +230,28 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
               >
                 Flashcards
               </Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setIsImportOpen(true)}
-              >
-                + Nhập nhanh (Import)
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsImportOpen(true)}
+                >
+                  <Upload size={14} className="mr-1" />
+                  Nhập nhanh (Import)
+                </Button>
+                {defaultValues && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsExportOpen(true)}
+                  >
+                    <Download size={14} className="mr-1" />
+                    Xuất file (Export)
+                  </Button>
+                )}
+              </div>
             </div>
             {form.formState.errors.flashcards?.root && (
               <p className="text-[0.8rem] font-medium text-destructive mb-2">
@@ -383,6 +399,14 @@ const StudySetForm = ({ defaultValues }: StudySetFormProps) => {
         onOpenChange={setIsImportOpen}
         onImport={handleImport}
       />
+      {defaultValues && (
+        <ExportDialog
+          open={isExportOpen}
+          onOpenChange={setIsExportOpen}
+          studySetId={defaultValues.id}
+          title={defaultValues.title}
+        />
+      )}
     </div>
   );
 };
