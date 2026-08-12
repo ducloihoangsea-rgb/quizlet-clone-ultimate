@@ -13,7 +13,7 @@ import { useFlashcardsModeContext } from "~/contexts/flashcards-mode-context";
 
 const StudySetFlashcards = ({ session }: { session: Session | null }) => {
   const { id }: { id: string } = useParams();
-  const [{ flashcards }] = api.studySet.byId.useSuspenseQuery({ id });
+  const [{ flashcards, userId }] = api.studySet.byId.useSuspenseQuery({ id });
   const { t } = useTranslation();
   
   const { starredOnly, toggleStarredOnly } = useFlashcardsModeContext();
