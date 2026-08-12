@@ -45,6 +45,7 @@
     "@acme/prettier-config": "workspace:*",
     "@acme/tailwind-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^22.10.10",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "catalog:react18",
