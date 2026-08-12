@@ -508,6 +508,7 @@ export const translations = {
     createSetBtn: "创建学习集",
     saveSetBtn: "保存学习集",
     editKey: "编辑",
+    more: "更多",
     darkMode: "暗黑模式",
     deleteAccount: "删除账号",
     combine: "合并",
