@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
-import { Download, FileText, Star, Printer } from "lucide-react";
+import { FileText, Star, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,168 +44,31 @@ const LEVEL_COLORS: Record<string, { bg: string; border: string; text: string }>
 
 type FilterMode = "all" | "starred" | number;
 
-const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogProps) => {
-  const { t } = useTranslation();
-  const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [isExporting, setIsExporting] = useState(false);
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\n/g, "<br>");
+}
 
-  const { data: studySet } = api.studySet.byId.useQuery({ id: studySetId }, { enabled: open });
-  const { data: studyProgress } = api.studyProgress.getProgress.useQuery({ studySetId }, { enabled: open });
-
-  const flashcards = studySet?.flashcards ?? [];
-
-  // Count per level
-  const levelCounts = useMemo(() => {
-    if (!flashcards.length || !studyProgress) return new Map<number, number>();
-    const progressMap = new Map(studyProgress.map((p) => [p.flashcardId, p]));
-    const counts = new Map<number, number>();
-    for (const card of flashcards) {
-      const p = progressMap.get(card.id);
-      const level = p ? Math.min(p.srsStep || 0, 7) : 0;
-      counts.set(level, (counts.get(level) || 0) + 1);
-    }
-    return counts;
-  }, [flashcards, studyProgress]);
-
-  // Starred count
-  const starredCount = flashcards.filter((f) => f.starred).length;
-
-  // Filter flashcards
-  const getFilteredCards = () => {
-    if (filterMode === "starred") {
-      return flashcards.filter((f) => f.starred);
-    }
-    if (typeof filterMode === "number") {
-      if (!studyProgress) return [];
-      const progressMap = new Map(studyProgress.map((p) => [p.flashcardId, p]));
-      return flashcards.filter((card) => {
-        const p = progressMap.get(card.id);
-        const level = p ? Math.min(p.srsStep || 0, 7) : 0;
-        return level === filterMode;
-      });
-    }
-    return flashcards;
-  };
-
-  // ─── EXPORT WORD ───
-  const exportWord = async () => {
-    setIsExporting(true);
-    try {
-      const cards = getFilteredCards();
-      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = await import("docx");
-      const { saveAs } = await import("file-saver");
-
-      const children: (InstanceType<typeof Paragraph>)[] = [];
-
-      // Title
-      children.push(
-        new Paragraph({
-          children: [
-            new TextRun({ text: title, bold: true, size: 32, font: "Times New Roman" }),
-          ],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { after: 200 },
-        })
-      );
-
-      cards.forEach((card, idx) => {
-        // Question number
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({ text: `Câu ${idx + 1}:`, bold: true, size: 24, font: "Times New Roman" }),
-            ],
-            spacing: { before: 240, after: 80 },
-          })
-        );
-
-        // Term (question) - split by newlines
-        const termLines = card.term.split("\n");
-        termLines.forEach((line) => {
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: line, size: 24, font: "Times New Roman" })],
-              spacing: { after: 40 },
-            })
-          );
-        });
-
-        // Definition (answer)
-        const defLines = card.definition.split("\n");
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({ text: "Đáp án: ", bold: true, size: 24, font: "Times New Roman" }),
-              new TextRun({ text: defLines[0] || "", size: 24, font: "Times New Roman", color: "2563EB", bold: true }),
-            ],
-            spacing: { before: 80, after: 80 },
-          })
-        );
-
-        // Extra definition lines if any
-        for (let i = 1; i < defLines.length; i++) {
-          children.push(
-            new Paragraph({
-              children: [
-                new TextRun({ text: defLines[i] || "", size: 24, font: "Times New Roman", color: "2563EB" }),
-              ],
-              spacing: { after: 40 },
-            })
-          );
-        }
-
-        // Separator
-        children.push(
-          new Paragraph({
-            border: {
-              bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-            },
-            spacing: { after: 160 },
-          })
-        );
-      });
-
-      const doc = new Document({
-        sections: [{
-          properties: {
-            page: {
-              margin: { top: 720, right: 720, bottom: 720, left: 720 },
-            },
-          },
-          children,
-        }],
-      });
-
-      const blob = await Packer.toBlob(doc);
-      const safeName = title.replace(/[^\w\u00C0-\u024F\u1E00-\u1EFF\u4E00-\u9FFF\s]/g, "").trim() || "export";
-      saveAs(blob, `${safeName}_export.docx`);
-    } catch (e) {
-      console.error("Export Word error:", e);
-      alert("Lỗi khi xuất file Word. Vui lòng thử lại.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  // ─── EXPORT PDF (via browser print) ───
-  const exportPDF = () => {
-    const cards = getFilteredCards();
-    
-    // Build HTML content
-    const html = `
+function buildHtmlContent(title: string, cards: { term: string; definition: string }[]): string {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>${title}</title>
+  <title>${escapeHtml(title)}</title>
   <style>
     @page { margin: 15mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Times New Roman', 'Noto Serif', serif;
+      font-family: 'Times New Roman', 'Noto Serif', 'KaiTi', 'STKaiti', serif;
       font-size: 13pt;
-      line-height: 1.5;
+      line-height: 1.6;
       color: #1a1a1a;
+      padding: 20px;
     }
     h1 {
       font-size: 20pt;
@@ -216,8 +79,8 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
     }
     .card {
       page-break-inside: avoid;
-      margin-bottom: 12px;
-      padding-bottom: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
       border-bottom: 1px solid #ddd;
     }
     .card-num {
@@ -253,25 +116,176 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
   `).join("")}
 </body>
 </html>`;
+}
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      alert("Trình duyệt đã chặn popup. Vui lòng cho phép popup và thử lại.");
+const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogProps) => {
+  const { t } = useTranslation();
+  const [filterMode, setFilterMode] = useState<FilterMode>("all");
+  const [isExporting, setIsExporting] = useState(false);
+  const printFrameRef = useRef<HTMLIFrameElement | null>(null);
+
+  const { data: studySet } = api.studySet.byId.useQuery({ id: studySetId }, { enabled: open });
+  const { data: studyProgress } = api.studyProgress.getProgress.useQuery({ studySetId }, { enabled: open });
+
+  const flashcards = studySet?.flashcards ?? [];
+
+  const levelCounts = useMemo(() => {
+    if (!flashcards.length || !studyProgress) return new Map<number, number>();
+    const progressMap = new Map(studyProgress.map((p) => [p.flashcardId, p]));
+    const counts = new Map<number, number>();
+    for (const card of flashcards) {
+      const p = progressMap.get(card.id);
+      const level = p ? Math.min(p.srsStep || 0, 7) : 0;
+      counts.set(level, (counts.get(level) || 0) + 1);
+    }
+    return counts;
+  }, [flashcards, studyProgress]);
+
+  const starredCount = flashcards.filter((f) => f.starred).length;
+
+  const getFilteredCards = () => {
+    if (filterMode === "starred") {
+      return flashcards.filter((f) => f.starred);
+    }
+    if (typeof filterMode === "number") {
+      if (!studyProgress) return [];
+      const progressMap = new Map(studyProgress.map((p) => [p.flashcardId, p]));
+      return flashcards.filter((card) => {
+        const p = progressMap.get(card.id);
+        const level = p ? Math.min(p.srsStep || 0, 7) : 0;
+        return level === filterMode;
+      });
+    }
+    return flashcards;
+  };
+
+  // ─── EXPORT WORD (.doc via HTML blob) ───
+  const exportWord = () => {
+    setIsExporting(true);
+    try {
+      const cards = getFilteredCards();
+      const html = buildHtmlContent(title, cards);
+
+      // Wrap in Word-compatible HTML
+      const wordHtml = `
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="utf-8">
+  <meta name="ProgId" content="Word.Document">
+  <meta name="Generator" content="Microsoft Word 15">
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page { margin: 2cm; }
+    body {
+      font-family: 'Times New Roman', serif;
+      font-size: 12pt;
+      line-height: 1.5;
+      color: #1a1a1a;
+    }
+    h1 {
+      font-size: 18pt;
+      font-weight: bold;
+      margin-bottom: 12pt;
+      border-bottom: 2px solid #333;
+      padding-bottom: 6pt;
+    }
+    .card {
+      margin-bottom: 12pt;
+      padding-bottom: 8pt;
+      border-bottom: 1px solid #ddd;
+    }
+    .card-num {
+      font-weight: bold;
+      font-size: 12pt;
+      margin-bottom: 3pt;
+    }
+    .card-term {
+      margin-bottom: 4pt;
+    }
+    .card-answer {
+      color: #2563EB;
+      font-weight: bold;
+    }
+    .card-answer-label {
+      color: #1a1a1a;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(title)}</h1>
+  ${cards.map((card, idx) => `
+    <div class="card">
+      <p class="card-num">Câu ${idx + 1}:</p>
+      <p class="card-term">${escapeHtml(card.term)}</p>
+      <p>
+        <span class="card-answer-label">Đáp án: </span>
+        <span class="card-answer">${escapeHtml(card.definition)}</span>
+      </p>
+    </div>
+  `).join("")}
+</body>
+</html>`;
+
+      const blob = new Blob(['\ufeff' + wordHtml], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safeName = title.replace(/[^\w\u00C0-\u024F\u1E00-\u1EFF\u4E00-\u9FFF\s]/g, "").trim() || "export";
+      a.href = url;
+      a.download = `${safeName}_export.doc`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Export Word error:", e);
+      alert("Lỗi khi xuất file Word. Vui lòng thử lại.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // ─── EXPORT PDF (via hidden iframe print) ───
+  const exportPDF = () => {
+    const cards = getFilteredCards();
+    const html = buildHtmlContent(title, cards);
+
+    // Remove old iframe if exists
+    if (printFrameRef.current) {
+      document.body.removeChild(printFrameRef.current);
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    iframe.style.opacity = "0";
+    document.body.appendChild(iframe);
+    printFrameRef.current = iframe;
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc) {
+      alert("Không thể mở khung in. Vui lòng thử lại.");
       return;
     }
-    printWindow.document.write(html);
-    printWindow.document.close();
-    
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
     // Wait for content to render then trigger print
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-      }, 300);
-    };
-    // Fallback if onload doesn't fire
     setTimeout(() => {
-      printWindow.print();
-    }, 1000);
+      iframe.contentWindow?.print();
+    }, 500);
   };
 
   const filteredCount = filterMode === "all"
@@ -294,7 +308,6 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
 
         {/* Filter options */}
         <div className="px-6 pb-4 space-y-3">
-          {/* All + Starred */}
           <div className="flex gap-2">
             <button
               onClick={() => setFilterMode("all")}
@@ -323,7 +336,6 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
             </button>
           </div>
 
-          {/* Level filters */}
           <div className="grid grid-cols-4 gap-2">
             {LEVELS.map(({ level, titleKey, color }) => {
               const count = levelCounts.get(level) || 0;
@@ -361,7 +373,7 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl h-12"
           >
             <FileText size={18} className="mr-2" />
-            Word (.docx)
+            Word (.doc)
           </Button>
           <Button
             onClick={exportPDF}
@@ -376,14 +388,5 @@ const ExportDialog = ({ open, onOpenChange, studySetId, title }: ExportDialogPro
     </Dialog>
   );
 };
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/\n/g, "<br>");
-}
 
 export default ExportDialog;
