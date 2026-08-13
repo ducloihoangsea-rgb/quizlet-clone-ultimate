@@ -123,7 +123,14 @@ export const studyProgressRouter = {
       for (const id of flashcardIds) {
         await ctx.db
           .update(StudyProgress)
-          .set({ flashcardStatus: "unseen" })
+          .set({ 
+            flashcardStatus: "unseen",
+            srsStep: 0,
+            repetition: 0,
+            interval: 0,
+            easeFactor: 2.5,
+            nextReviewDate: new Date()
+          })
           .where(
             and(
               eq(StudyProgress.userId, ctx.session.user.id),

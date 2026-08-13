@@ -34,11 +34,11 @@ export const isSecureContext = env.NODE_ENV !== "development";
 
 export const authConfig = {
   adapter,
+  trustHost: true,
   // In development, we need to skip checks to allow Expo to work
   ...(!isSecureContext
     ? {
         skipCSRFCheck: skipCSRFCheck,
-        trustHost: true,
       }
     : {}),
   secret: env.AUTH_SECRET || "fallback_secret_for_development_and_vercel_preview",
