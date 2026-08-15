@@ -22,11 +22,23 @@ interface StudySetProps {
 export async function generateMetadata({
   params: { id },
 }: StudySetProps): Promise<Metadata> {
-  const { title } = await api.studySet.byId({ id });
+  try {
+    const { title, description, user } = await api.studySet.byId({ id });
 
-  return {
-    title,
-  };
+    return {
+      title,
+      description: description || `Học phần ${title} được tạo bởi ${user.name}`,
+      openGraph: {
+        title: title,
+        description: description || `Học phần ${title} trên Quizlet Clone`,
+        type: "website",
+      },
+    };
+  } catch {
+    return {
+      title: "Học phần",
+    };
+  }
 }
 
 import SpacedRepetitionGrid from "~/components/study-set/spaced-repetition-grid";

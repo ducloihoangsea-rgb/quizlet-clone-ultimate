@@ -20,13 +20,21 @@ export async function generateMetadata({
   params: { slug },
 }: FolderProps): Promise<Metadata> {
   try {
-    const { name } = await api.folder.bySlug({ slug });
+    const folder = await api.folder.bySlug({ slug });
 
     return {
-      title: name,
+      title: folder.name,
+      description: folder.description || `Thư mục ${folder.name} gồm ${folder.studySets.length} học phần, tạo bởi ${folder.user.name}`,
+      openGraph: {
+        title: folder.name,
+        description: folder.description || `Thư mục ${folder.name} trên Quizlet Clone`,
+        type: "website",
+      },
     };
   } catch {
-    return {};
+    return {
+      title: "Thư mục",
+    };
   }
 }
 
