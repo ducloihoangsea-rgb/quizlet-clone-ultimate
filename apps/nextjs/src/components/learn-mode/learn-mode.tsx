@@ -891,7 +891,7 @@ const LearnMode = ({ session, goal, level, starredOnly }: { session: Session | n
                 {sessionCards.map((flashcard, index) => (
                   <FlashcardCard
                     key={index}
-                    flashcard={flashcard}
+                    flashcard={{ ...flashcard, progress: null } as any}
                     session={session}
                   />
                 ))}

@@ -34,6 +34,8 @@ const testSchema = z.object({
   written: z.array(flashcard),
 });
 
+type Answers = z.infer<typeof testSchema>;
+
 interface TestFormProps {
   test: RouterOutputs["studySet"]["testCards"];
   onSubmit: (answer: Answers) => void;

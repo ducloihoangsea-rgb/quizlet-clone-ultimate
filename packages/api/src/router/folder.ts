@@ -111,6 +111,10 @@ export const folderRouter = {
         userId: ctx.session.user.id,
       });
 
+      if (!newFolder) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create folder" });
+      }
+
       const folderStudySets = await ctx.db.query.FoldersToStudySets.findMany({
         where: eq(FoldersToStudySets.folderId, input.id),
       });
