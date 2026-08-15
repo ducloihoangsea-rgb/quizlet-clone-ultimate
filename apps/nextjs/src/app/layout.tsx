@@ -33,17 +33,17 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    env.NODE_ENV === "production"
-      ? "https://turbo.t3.gg"
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000",
   ),
   title: "Quizlet Clone",
-  description: "Quizlet clone application built with turbo.t3.gg",
+  description: "Ứng dụng học tập Quizlet Clone",
   openGraph: {
     title: "Quizlet Clone",
-    description: "Quizlet clone application built with turbo.t3.gg",
-    url: "https://create-t3-turbo.vercel.app",
+    description: "Ứng dụng học tập Quizlet Clone",
     siteName: "Quizlet Clone",
+    type: "website",
   },
 };
 
